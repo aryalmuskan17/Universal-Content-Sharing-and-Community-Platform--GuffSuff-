@@ -1,7 +1,20 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 function App() {
-  return <h1>Hello, Vite + React!</h1>
+  const [message, setMessage] = useState("")
+
+  useEffect(() => {
+    fetch('/api/hello')
+      .then(res => res.json())
+      .then(data => setMessage(data.message))
+      .catch(err => setMessage("Failed to load message"))
+  }, [])
+
+  return (
+    <>
+      <h1>{message}</h1>
+    </>
+  )
 }
 
 export default App
