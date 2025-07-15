@@ -1,22 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import Login from './Login';
 
 function App() {
-  const [message, setMessage] = useState("");
+  const [role, setRole] = useState(localStorage.getItem('role'));
 
-  useEffect(() => {
-    fetch('http://localhost:4000/api/hello')
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((err) => {
-        console.error("Failed to fetch from backend:", err);
-        setMessage("Failed to load message");
-      });
-  }, []);
+  const handleLogout = () => {
+    localStorage.clear();
+    setRole(null);
+  };
 
   return (
-    <>
-      <h1>{message}</h1>
-    </>
+    <div>
+      {role ? (
+        <>
+          <h1>Welcome, {role}!</h1>
+
+          {/* Example buttons based on role */}
+          {role === 'Admin' && <button>Admin Panel</button>}
+          {role === 'Editor' && <button>Edit Content</button>}
+          <button onClick={handleLogout}>Logout</button>
+        </>
+      ) : (
+        <Login onLogin={setRole} />
+      )}
+    </div>
   );
 }
 

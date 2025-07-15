@@ -1,0 +1,43 @@
+// server/middleware/auth.js
+
+const jwt = require('jsonwebtoken');
+const secret = process.env.JWT_SECRET || 'defaultsecret';
+
+function auth(allowedRoles) {
+  // This log will appear when the middleware function is first created/applied (e.g., app.use(auth(...)))
+  console.log('--- Auth Middleware Initiated (for roles:', allowedRoles, ') ---'); 
+
+  return (req, res, next) => {
+    // This log will appear every time a request goes through this middleware
+    console.log('--- Checking for Token (Request to:', req.path, ') ---'); 
+
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+      console.log('No token found for request to', req.path, ', sending 401.'); 
+      return res.status(401).json({ error: 'No token' });
+    }
+
+    try {
+      const user = jwt.verify(token, secret);
+      console.log('Token verified for user:', user.id, 'with role:', user.role); 
+
+      // Check if the user's role is allowed
+      if (!Array.isArray(allowedRoles) || !allowedRoles.includes(user.role)) {
+        console.log('User role', user.role, 'not allowed for request to', req.path, ', sending 403.'); 
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      req.user = user; // Attach user info to the request
+      console.log('Token valid and role allowed, proceeding to next middleware/route.'); 
+      next(); // Proceed to the next middleware or route handler
+
+    } catch (e) {
+      // Catch errors during token verification (e.g., invalid token, expired token)
+      console.log('Invalid token for request to', req.path, ', sending 401. Error:', e.message); 
+      res.status(401).json({ error: 'Invalid token' });
+    }
+  };
+}
+
+module.exports = auth;
