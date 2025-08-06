@@ -1,58 +1,58 @@
-import { useState } from 'react';
-import Login from './Login';
+// client/src/App.jsx (Final Corrected Version)
+
+import React, { useContext } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Routes, Route } from 'react-router-dom';
+
+// ProtectedRoute component
+import ProtectedRoute from './components/ProtectedRoute';
+
+// All pages and layouts
+import Login from './Login.jsx';
+import Register from './pages/Register.jsx';
+import ArticleList from './pages/ArticleList.jsx';
+import CreateArticle from './pages/CreateArticle.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import FullAdminDashboard from './pages/FullAdminDashboard.jsx';
+import AnalyticsDashboard from './pages/AnalyticsDashboard.jsx';
+import UserManagement from './components/UserManagement.jsx';
+import Profile from './components/Profile.jsx';
+import EditArticle from './pages/EditArticle.jsx';
+import PublisherAnalytics from './components/PublisherAnalytics.jsx';
+import SingleArticle from './pages/SingleArticle.jsx';
+import Layout from './components/Layout.jsx';
 
 function App() {
-  const [role, setRole] = useState(localStorage.getItem('role'));
-  const [message, setMessage] = useState('');
-
-  const handleLogout = () => {
-    localStorage.clear();
-    setRole(null);
-    setMessage('');
-  };
-
-  const fetchAdminData = async () => {
-    const token = localStorage.getItem('token');
-
-    try {
-      const res = await fetch('http://localhost:5001/api/admin-data', {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + token
-        }
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage(data.message);
-      } else {
-        setMessage(data.error || 'Access denied');
-      }
-    } catch (err) {
-      console.error('Request to admin endpoint failed:', err);
-      setMessage('Request failed. Check network or server connection.');
-    }
-  };
-
   return (
-    <div>
-      {role ? (
-        <>
-          <h1>Welcome, {role}!</h1>
-
-          {role === 'Admin' && (
-            <>
-              <button onClick={fetchAdminData}>Get Admin Data</button>
-              <p>{message}</p>
-            </>
-          )}
+    <div className="min-h-screen">
+      <ToastContainer position="bottom-right" />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Protected Routes - rendered inside the Layout */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<ArticleList />} />
+          <Route path="article/:articleId" element={<SingleArticle />} />
+          <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           
-          <button onClick={handleLogout}>Logout</button>
-        </>
-      ) : (
-        <Login onLogin={setRole} />
-      )}
+          {/* Publisher & Admin Routes */}
+          <Route path="create-article" element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><CreateArticle /></ProtectedRoute>} />
+          <Route path="publisher-analytics" element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><PublisherAnalytics /></ProtectedRoute>} />
+          <Route path="edit-article/:articleId" element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><EditArticle /></ProtectedRoute>} />
+          
+          {/* Admin-only Routes */}
+          <Route path="admin-dashboard" element={<ProtectedRoute requiredRoles={['Admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="full-admin-dashboard" element={<ProtectedRoute requiredRoles={['Admin']}><FullAdminDashboard /></ProtectedRoute>} />
+          <Route path="analytics-dashboard" element={<ProtectedRoute requiredRoles={['Admin']}><AnalyticsDashboard /></ProtectedRoute>} />
+          <Route path="user-management" element={<ProtectedRoute requiredRoles={['Admin']}><UserManagement /></ProtectedRoute>} />
+
+          {/* Fallback for unknown URLs */}
+          <Route path="*" element={<div>Page Not Found</div>} />
+        </Route>
+      </Routes>
     </div>
   );
 }

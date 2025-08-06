@@ -1,26 +1,35 @@
+// 1. Loading environment variables first.
 require('dotenv').config();
+console.log('Connecting to MongoDB with URI:', process.env.MONGO_URI);
 
+// 2. Importing all necessary modules at the top.
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const authRoutes = require('./routes/auth'); // Your authentication routes
-const secureRoutes = require('./routes/secure'); // 
+
+// Import your route files
+const authRoutes = require('./routes/auth');
+const articleRoutes = require('./routes/article');
+const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
-
+// 3. Connect to the database before setting up routes.
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected!'))
   .catch(err => console.error('❌ MongoDB error:', err));
 
-// Your API routes
-app.use('/api', authRoutes);
-app.use('/api', secureRoutes); //
+// 4. Use your middlewares.
+app.use(cors());
+app.use(express.json());
 
+// 5. Define your API routes.
+app.use('/api/auth', authRoutes);
+app.use('/api/articles', articleRoutes);
+app.use('/api/analytics', analyticsRoutes);
+
+// 6. Start the server.
 const PORT = process.env.PORT || 4000;
-
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });
