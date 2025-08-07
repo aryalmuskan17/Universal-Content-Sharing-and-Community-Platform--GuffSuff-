@@ -17,17 +17,24 @@ router.post('/', auth(['Publisher', 'Admin']), async (req, res) => {
   }
 });
 
-// @desc    Get all published articles with filtering
+// @desc    Get all published articles with filtering, searching, and sorting
 // @route   GET /api/articles
 // @access  Public (Reader)
 router.get('/', async (req, res) => {
   try {
     const query = { status: 'published' };
+
+    // Filter by category if a category is provided in the query
     if (req.query.category) {
       query.category = req.query.category;
     }
-    if (req.query.tags) {
-      query.tags = { $in: req.query.tags.split(',') };
+
+    // Search by title or content if a search query is provided
+    if (req.query.q) {
+      query.$or = [
+        { title: { $regex: req.query.q, $options: 'i' } }, // Search by title (case-insensitive)
+        { content: { $regex: req.query.q, $options: 'i' } }, // Search by content (case-insensitive)
+      ];
     }
 
     const articles = await Article.find(query).populate('author');

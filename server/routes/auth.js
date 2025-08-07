@@ -6,18 +6,26 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
 
-const secret = process.env.JWT_SECRET || 'defaultsecret';
+// NOTE: We are removing the 'secret' variable and will use process.env.JWT_SECRET directly for consistency.
 
-// Middleware to verify JWT token and get user info
-// It now looks for the token in the 'x-auth-token' header
+// Corrected Middleware to verify JWT token and get user info
 const protect = (req, res, next) => {
-  const token = req.header('x-auth-token');
+  let token = req.header('x-auth-token');
+
+  // FIX: This section now correctly checks for the Authorization: Bearer token
+  if (!token && req.header('Authorization')) {
+    const authHeader = req.header('Authorization');
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7); // Extract the token string
+    }
+  }
+
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
 
   try {
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (error) {
@@ -41,7 +49,6 @@ router.get('/profile', protect, async (req, res) => {
 });
 
 // Route to update a user's own profile
-// MODIFIED: Changed method to PATCH and endpoint to '/profile'
 router.patch('/profile', protect, async (req, res) => {
   const { bio, picture, contactInfo } = req.body;
   try {
@@ -120,7 +127,6 @@ router.put('/profile/unsubscribe/:publisherId', protect, async (req, res) => {
 // Registration route
 router.post('/register', async (req, res) => {
   const { username, password, role } = req.body;
-
   if (!username || !password) {
     return res.status(400).json({ message: 'Username and password are required.' });
   }
@@ -132,18 +138,17 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const newUser = new User({ username, password: hashedPassword, role });
     await newUser.save();
 
-    const token = jwt.sign({ id: newUser._id, role: newUser.role }, secret, { expiresIn: '1h' });
+    // FIX: Using process.env.JWT_SECRET directly for consistency
+    const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     res.status(201).json({
       message: '✅ User registered successfully!',
       token: token,
       user: { _id: newUser._id, username: newUser.username, role: newUser.role, subscriptions: newUser.subscriptions || [] }
     });
-
   } catch (error) {
     console.error('Error during user registration:', error);
     if (error.name === 'ValidationError') {
@@ -156,7 +161,6 @@ router.post('/register', async (req, res) => {
 // Login route
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
-
   if (!username || !password) {
     return res.status(400).json({ message: 'Username and password are required for login.' });
   }
@@ -168,7 +172,8 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, secret, { expiresIn: '1h' });
+    // FIX: Using process.env.JWT_SECRET directly for consistency
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.status(200).json({ token, user: { _id: user._id, username: user.username, role: user.role, subscriptions: user.subscriptions || [] } });
   } catch (error) {
     console.error('Error during user login:', error);
