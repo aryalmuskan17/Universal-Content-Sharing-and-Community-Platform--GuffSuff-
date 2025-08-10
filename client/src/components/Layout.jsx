@@ -4,6 +4,7 @@ import React, { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 import { Outlet, useNavigate } from 'react-router-dom';
+import NotificationBell from './NotificationBell.jsx'; // <-- IMPORT THE COMPONENT
 
 const Layout = () => {
     const { logout, user } = useContext(UserContext);
@@ -47,6 +48,9 @@ const Layout = () => {
                     )}
                 </div>
                 <div>
+                    {/* Add the notification bell here */}
+                    <NotificationBell />
+                    
                     {user && (
                         <button onClick={() => navigate('/profile')} className="p-2 mr-4 hover:bg-gray-700 rounded">
                             {t('profile')}

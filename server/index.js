@@ -11,6 +11,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const articleRoutes = require('./routes/article');
 const analyticsRoutes = require('./routes/analytics');
+const notificationRoutes = require('./routes/notification'); // <-- ADD THIS LINE
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/notifications', notificationRoutes); // <-- ADD THIS LINE
 
 // 6. Start the server.
 const PORT = process.env.PORT || 4000;

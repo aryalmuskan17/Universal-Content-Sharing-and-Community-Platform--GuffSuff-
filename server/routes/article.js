@@ -1,9 +1,11 @@
-// server/routes/article.js (Final Corrected Version)
+// server/routes/article.js (Final Corrected Version with Notifications)
 
 const express = require('express');
 const router = express.Router();
 const Article = require('../models/Article');
 const auth = require('../middleware/auth');
+const User = require('../models/User'); 
+const Notification = require('../models/Notification');
 
 // @desc    Create a new article
 // @route   POST /api/articles
@@ -11,6 +13,31 @@ const auth = require('../middleware/auth');
 router.post('/', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
     const article = await Article.create({ ...req.body, author: req.user.id });
+
+    // --- CORRECTED NOTIFICATION LOGIC ---
+    // First, find the publisher's details to get their name
+    const publisher = await User.findById(req.user.id);
+    
+    if (publisher) { 
+        // Find all users who are subscribed to this publisher
+        const subscribers = await User.find({ subscriptions: publisher._id });
+
+        // Create a notification for each subscriber
+        const notificationPromises = subscribers.map(subscriber => {
+          const message = `${publisher.name} has published a new article: "${article.title}"`;
+          return Notification.create({
+            user: subscriber._id,
+            publisher: publisher._id,
+            article: article._id,
+            message,
+          });
+        });
+
+        // Wait for all notifications to be created
+        await Promise.all(notificationPromises);
+    }
+    // --- END OF CORRECTED NOTIFICATION LOGIC ---
+
     res.status(201).json({ success: true, data: article });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
@@ -24,16 +51,14 @@ router.get('/', async (req, res) => {
   try {
     const query = { status: 'published' };
 
-    // Filter by category if a category is provided in the query
     if (req.query.category) {
       query.category = req.query.category;
     }
 
-    // Search by title or content if a search query is provided
     if (req.query.q) {
       query.$or = [
-        { title: { $regex: req.query.q, $options: 'i' } }, // Search by title (case-insensitive)
-        { content: { $regex: req.query.q, $options: 'i' } }, // Search by content (case-insensitive)
+        { title: { $regex: req.query.q, $options: 'i' } },
+        { content: { $regex: req.query.q, $options: 'i' } },
       ];
     }
 
@@ -61,7 +86,6 @@ router.get('/pending', auth(['Admin']), async (req, res) => {
 // @access  Private (Admin only)
 router.get('/admin/all', auth(['Admin']), async (req, res) => {
   try {
-    // Corrected logic to handle search and filters for the Admin route
     const query = {};
 
     if (req.query.category) {
@@ -169,7 +193,7 @@ router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res
     const articles = await Article.find({ author: req.user.id });
     res.status(200).json({ success: true, data: articles });
   } catch (err) {
-    res.status(500).json({ success: false, error: 'Server Error' });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
