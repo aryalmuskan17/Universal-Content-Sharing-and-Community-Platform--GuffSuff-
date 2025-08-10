@@ -20,7 +20,14 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error('❌ MongoDB error:', err));
 
 // 4. Use your middlewares.
-app.use(cors());
+
+// FIX: Explicit CORS configuration to allow all origins and headers
+app.use(cors({
+  origin: '*', // This allows all origins during development
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // All common HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'], // Custom headers your app needs
+}));
+
 app.use(express.json());
 
 // 5. Define your API routes.

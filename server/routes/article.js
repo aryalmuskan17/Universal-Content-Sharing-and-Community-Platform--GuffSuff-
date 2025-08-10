@@ -56,12 +56,26 @@ router.get('/pending', auth(['Admin']), async (req, res) => {
   }
 });
 
-// @desc    Get all articles for Admin dashboard
+// @desc    Get all articles for Admin dashboard with filtering, searching, and sorting
 // @route   GET /api/articles/admin/all
 // @access  Private (Admin only)
 router.get('/admin/all', auth(['Admin']), async (req, res) => {
   try {
-    const articles = await Article.find().populate('author').sort({ createdAt: -1 });
+    // Corrected logic to handle search and filters for the Admin route
+    const query = {};
+
+    if (req.query.category) {
+      query.category = req.query.category;
+    }
+
+    if (req.query.q) {
+      query.$or = [
+        { title: { $regex: req.query.q, $options: 'i' } },
+        { content: { $regex: req.query.q, $options: 'i' } },
+      ];
+    }
+
+    const articles = await Article.find(query).populate('author').sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Server Error' });
