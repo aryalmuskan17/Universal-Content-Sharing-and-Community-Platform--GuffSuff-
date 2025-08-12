@@ -1,10 +1,10 @@
-// src/components/ArticleCard.jsx (Final Corrected Version)
+// client/src/components/ArticleCard.jsx (Final Corrected Version)
 
 import React, { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import "react-toastify/dist/ReactToastify.css"; // CORRECTED: Fixed the file name
+import "react-toastify/dist/ReactToastify.css";
 import SubscribeButton from './SubscribeButton';
 import { UserContext } from '../context/UserContext';
 
@@ -56,7 +56,26 @@ const ArticleCard = ({ article, onViewArticleClick }) => {
           {currentArticle.title}
         </h2>
         
-        <p className="mt-2 text-gray-500">
+        {/* MOVED: Conditional thumbnail display is now here */}
+        {currentArticle.mediaUrl && (
+          <div className="mt-2 h-48 w-full overflow-hidden">
+            {currentArticle.mediaUrl.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/) ? (
+              <img
+                src={`http://localhost:5001/${currentArticle.mediaUrl}`}
+                alt={currentArticle.title}
+                className="h-full w-full object-cover rounded-lg"
+              />
+            ) : (
+              <video
+                controls
+                src={`http://localhost:5001/${currentArticle.mediaUrl}`}
+                className="h-full w-full object-cover rounded-lg"
+              />
+            )}
+          </div>
+        )}
+
+        <p className="mt-4 text-gray-500">
           {contentSnippet}
         </p>
         

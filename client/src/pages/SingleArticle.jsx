@@ -4,11 +4,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useParams, useNavigate } from 'react-router-dom'; // MODIFIED: Added useNavigate
+import { useParams, useNavigate } from 'react-router-dom';
 
-const SingleArticle = () => { // MODIFIED: Removed onBack prop
+const SingleArticle = () => {
   const { articleId } = useParams();
-  const navigate = useNavigate(); // NEW: Initialize navigate hook
+  const navigate = useNavigate();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const isViewIncremented = useRef(false);
@@ -76,6 +76,25 @@ const SingleArticle = () => { // MODIFIED: Removed onBack prop
       <p className="text-gray-600 text-sm mb-6">
         By: <span className="font-semibold">{article.author?.username}</span> | Published on: {new Date(article.createdAt).toLocaleDateString()}
       </p>
+
+      {/* NEW: Conditional rendering for media content */}
+      {article.mediaUrl && (
+          <div className="my-6">
+              {article.mediaUrl.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/) ? (
+                  <img 
+                      src={`http://localhost:5001/${article.mediaUrl}`} 
+                      alt={article.title} 
+                      className="w-full h-auto rounded-lg shadow-md"
+                  />
+              ) : (
+                  <video 
+                      controls 
+                      src={`http://localhost:5001/${article.mediaUrl}`} 
+                      className="w-full h-auto rounded-lg shadow-md"
+                  />
+              )}
+          </div>
+      )}
       
       <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: article.content }}></div>
       

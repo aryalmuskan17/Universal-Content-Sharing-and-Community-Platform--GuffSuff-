@@ -1,4 +1,5 @@
-// client/src/pages/CreateArticle.jsx (Final Corrected Version)
+// client/src/pages/CreateArticle.jsx (Final Corrected Version with File Upload)
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -16,10 +17,15 @@ const CreateArticle = () => {
     language: 'en',
   });
 
+  const [media, setMedia] = useState(null); // <-- NEW STATE FOR THE FILE
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  
+  const handleFileChange = (e) => {
+    setMedia(e.target.files[0]); // <-- NEW HANDLER FOR FILE INPUT
   };
 
   const handleSubmit = async (e) => {
@@ -35,23 +41,33 @@ const CreateArticle = () => {
     }
 
     try {
-      const articleData = {
-        ...formData,
-        tags: formData.tags.split(',').map(tag => tag.trim()),
-      };
+      const articleTags = formData.tags.split(',').map(tag => tag.trim());
+      
+      // --- UPDATED SUBMISSION LOGIC TO USE FORMDATA ---
+      const articleFormData = new FormData();
+      articleFormData.append('title', formData.title);
+      articleFormData.append('content', formData.content);
+      articleFormData.append('tags', articleTags);
+      articleFormData.append('category', formData.category);
+      articleFormData.append('language', formData.language);
 
-      const response = await axios.post(
+      if (media) {
+        articleFormData.append('media', media); // <-- ADD THE FILE
+      }
+
+      await axios.post(
         'http://localhost:5001/api/articles',
-        articleData,
+        articleFormData, // <-- SEND FORMDATA OBJECT
         {
           headers: {
-            'Content-Type': 'application/json',
-            'x-auth-token': token, // CORRECTED: Changed header to 'x-auth-token'
+            'x-auth-token': token,
+            // Axios will automatically set the 'Content-Type' header to 'multipart/form-data'
+            // when sending a FormData object, so we don't need to specify it.
           },
         }
       );
 
-      console.log('Article created successfully:', response.data);
+      console.log('Article created successfully');
       toast.success(t('articleSubmittedForReview'));
       
       setFormData({
@@ -61,7 +77,7 @@ const CreateArticle = () => {
         category: '',
         language: 'en',
       });
-
+      setMedia(null); // Clear the file state
     } catch (err) {
       console.error('Error creating article:', err.response?.data || err.message);
       toast.error(t('failedToCreateArticle'));
@@ -99,6 +115,18 @@ const CreateArticle = () => {
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           ></textarea>
+        </div>
+        
+        {/* NEW: File input for media */}
+        <div>
+          <label htmlFor="media" className="block text-sm font-medium text-gray-700">{t('media')}</label>
+          <input
+            type="file"
+            id="media"
+            name="media"
+            onChange={handleFileChange}
+            className="mt-1 block w-full text-gray-700"
+          />
         </div>
         
         <div>

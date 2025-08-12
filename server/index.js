@@ -11,7 +11,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const articleRoutes = require('./routes/article');
 const analyticsRoutes = require('./routes/analytics');
-const notificationRoutes = require('./routes/notification'); // <-- ADD THIS LINE
+const notificationRoutes = require('./routes/notification'); 
 
 const app = express();
 
@@ -21,21 +21,24 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error('❌ MongoDB error:', err));
 
 // 4. Use your middlewares.
-
-// FIX: Explicit CORS configuration to allow all origins and headers
 app.use(cors({
-  origin: '*', // This allows all origins during development
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // All common HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'], // Custom headers your app needs
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], 
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'], 
 }));
 
 app.use(express.json());
+
+// --- ADD THE NEW LINE HERE ---
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static('uploads'));
+
 
 // 5. Define your API routes.
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/notifications', notificationRoutes); // <-- ADD THIS LINE
+app.use('/api/notifications', notificationRoutes); 
 
 // 6. Start the server.
 const PORT = process.env.PORT || 4000;

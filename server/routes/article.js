@@ -1,4 +1,4 @@
-// server/routes/article.js (Final Corrected Version with Notifications)
+// server/routes/article.js (Final Corrected Version)
 
 const express = require('express');
 const router = express.Router();
@@ -6,25 +6,46 @@ const Article = require('../models/Article');
 const auth = require('../middleware/auth');
 const User = require('../models/User'); 
 const Notification = require('../models/Notification');
+const multer = require('multer');
+
+// Configure Multer for file storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); 
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage: storage });
 
 // @desc    Create a new article
 // @route   POST /api/articles
 // @access  Private (Publisher, Admin)
-router.post('/', auth(['Publisher', 'Admin']), async (req, res) => {
+router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (req, res) => {
   try {
-    const article = await Article.create({ ...req.body, author: req.user.id });
+    const { title, content, status, tags, category, language } = req.body;
+    let articleData = {
+      title,
+      content,
+      author: req.user.id,
+      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+      category,
+      status,
+      language,
+    };
 
-    // --- CORRECTED NOTIFICATION LOGIC ---
-    // First, find the publisher's details to get their name
+    if (req.file) { 
+      articleData.mediaUrl = req.file.path;
+    }
+
+    const article = await Article.create(articleData);
+
     const publisher = await User.findById(req.user.id);
-    
     if (publisher) { 
-        // Find all users who are subscribed to this publisher
         const subscribers = await User.find({ subscriptions: publisher._id });
-
-        // Create a notification for each subscriber
         const notificationPromises = subscribers.map(subscriber => {
-          const message = `${publisher.name} has published a new article: "${article.title}"`;
+          const message = `${publisher.name || publisher.username} has published a new article: "${article.title}"`;
           return Notification.create({
             user: subscriber._id,
             publisher: publisher._id,
@@ -32,11 +53,8 @@ router.post('/', auth(['Publisher', 'Admin']), async (req, res) => {
             message,
           });
         });
-
-        // Wait for all notifications to be created
         await Promise.all(notificationPromises);
     }
-    // --- END OF CORRECTED NOTIFICATION LOGIC ---
 
     res.status(201).json({ success: true, data: article });
   } catch (err) {
@@ -50,19 +68,16 @@ router.post('/', auth(['Publisher', 'Admin']), async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const query = { status: 'published' };
-
     if (req.query.category) {
       query.category = req.query.category;
     }
-
     if (req.query.q) {
       query.$or = [
         { title: { $regex: req.query.q, $options: 'i' } },
         { content: { $regex: req.query.q, $options: 'i' } },
       ];
     }
-
-    const articles = await Article.find(query).populate('author');
+    const articles = await Article.find(query).populate('author').select('+mediaUrl');
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Server Error' });
@@ -74,7 +89,7 @@ router.get('/', async (req, res) => {
 // @access  Private (Admin only)
 router.get('/pending', auth(['Admin']), async (req, res) => {
   try {
-    const articles = await Article.find({ status: 'pending' }).populate('author');
+    const articles = await Article.find({ status: 'pending' }).populate('author').select('+mediaUrl');
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Server Error' });
@@ -87,19 +102,16 @@ router.get('/pending', auth(['Admin']), async (req, res) => {
 router.get('/admin/all', auth(['Admin']), async (req, res) => {
   try {
     const query = {};
-
     if (req.query.category) {
       query.category = req.query.category;
     }
-
     if (req.query.q) {
       query.$or = [
         { title: { $regex: req.query.q, $options: 'i' } },
         { content: { $regex: req.query.q, $options: 'i' } },
       ];
     }
-
-    const articles = await Article.find(query).populate('author').sort({ createdAt: -1 });
+    const articles = await Article.find(query).populate('author').sort({ createdAt: -1 }).select('+mediaUrl');
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Server Error' });
@@ -111,7 +123,7 @@ router.get('/admin/all', auth(['Admin']), async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const article = await Article.findById(req.params.id).populate('author');
+    const article = await Article.findById(req.params.id).populate('author').select('+mediaUrl');
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
@@ -137,7 +149,7 @@ router.patch('/:id/view', auth(), async (req, res) => {
             req.params.id,
             { $inc: { views: 1 } },
             { new: true, runValidators: true }
-        );
+        ).select('+mediaUrl');
         if (!article) {
             return res.status(404).json({ success: false, message: 'Article not found' });
         }
@@ -156,7 +168,7 @@ router.patch('/:id/like', async (req, res) => {
       req.params.id,
       { $inc: { likes: 1 } },
       { new: true, runValidators: true }
-    );
+    ).select('+mediaUrl');
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
@@ -175,7 +187,7 @@ router.patch('/:id/share', async (req, res) => {
       req.params.id,
       { $inc: { shares: 1 } },
       { new: true, runValidators: true }
-    );
+    ).select('+mediaUrl');
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
@@ -190,7 +202,7 @@ router.patch('/:id/share', async (req, res) => {
 // @access  Private (Publisher, Admin)
 router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
-    const articles = await Article.find({ author: req.user.id });
+    const articles = await Article.find({ author: req.user.id }).select('+mediaUrl');
     res.status(200).json({ success: true, data: articles });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -202,7 +214,7 @@ router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res
 // @access  Private (Publisher, Admin)
 router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
-    const article = await Article.findById(req.params.id);
+    const article = await Article.findById(req.params.id).select('+mediaUrl');
 
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
@@ -216,7 +228,7 @@ router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
       req.params.id,
       { ...req.body, updatedAt: Date.now() },
       { new: true, runValidators: true }
-    );
+    ).select('+mediaUrl');
 
     res.status(200).json({ success: true, data: updatedArticle });
   } catch (err) {
@@ -234,7 +246,7 @@ router.patch('/:id/status', auth(['Admin']), async (req, res) => {
       req.params.id,
       { status, updatedAt: Date.now() },
       { new: true, runValidators: true }
-    );
+    ).select('+mediaUrl');
 
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
