@@ -1,4 +1,4 @@
-// client/src/pages/CreateArticle.jsx (Final Corrected Version with File Upload)
+// client/src/pages/CreateArticle.jsx (Styled Version)
 
 import React, { useState } from 'react';
 import axios from 'axios';
@@ -17,7 +17,7 @@ const CreateArticle = () => {
     language: 'en',
   });
 
-  const [media, setMedia] = useState(null); // <-- NEW STATE FOR THE FILE
+  const [media, setMedia] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -25,7 +25,7 @@ const CreateArticle = () => {
   };
   
   const handleFileChange = (e) => {
-    setMedia(e.target.files[0]); // <-- NEW HANDLER FOR FILE INPUT
+    setMedia(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -43,7 +43,6 @@ const CreateArticle = () => {
     try {
       const articleTags = formData.tags.split(',').map(tag => tag.trim());
       
-      // --- UPDATED SUBMISSION LOGIC TO USE FORMDATA ---
       const articleFormData = new FormData();
       articleFormData.append('title', formData.title);
       articleFormData.append('content', formData.content);
@@ -52,17 +51,15 @@ const CreateArticle = () => {
       articleFormData.append('language', formData.language);
 
       if (media) {
-        articleFormData.append('media', media); // <-- ADD THE FILE
+        articleFormData.append('media', media);
       }
 
       await axios.post(
         'http://localhost:5001/api/articles',
-        articleFormData, // <-- SEND FORMDATA OBJECT
+        articleFormData,
         {
           headers: {
             'x-auth-token': token,
-            // Axios will automatically set the 'Content-Type' header to 'multipart/form-data'
-            // when sending a FormData object, so we don't need to specify it.
           },
         }
       );
@@ -77,105 +74,118 @@ const CreateArticle = () => {
         category: '',
         language: 'en',
       });
-      setMedia(null); // Clear the file state
+      setMedia(null);
     } catch (err) {
       console.error('Error creating article:', err.response?.data || err.message);
-      toast.error(t('failedToCreateArticle'));
+      toast.error(err.response?.data?.error || t('failedToCreateArticle'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">{t('createArticle')}</h1>
+    <div className="flex justify-center items-center p-4">
+      <div className="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg">
+        <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">{t('createArticle')}</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">{t('title')}</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('title')}
+            </label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+            />
+          </div>
 
-        <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700">{t('content')}</label>
-          <textarea
-            id="content"
-            name="content"
-            rows="10"
-            value={formData.content}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          ></textarea>
-        </div>
-        
-        {/* NEW: File input for media */}
-        <div>
-          <label htmlFor="media" className="block text-sm font-medium text-gray-700">{t('media')}</label>
-          <input
-            type="file"
-            id="media"
-            name="media"
-            onChange={handleFileChange}
-            className="mt-1 block w-full text-gray-700"
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="tags" className="block text-sm font-medium text-gray-700">{t('tags')}</label>
-          <input
-            type="text"
-            id="tags"
-            name="tags"
-            value={formData.tags}
-            onChange={handleChange}
-            placeholder={t('tagsPlaceholder')}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-200 focus:ring-opacity-50"
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700">{t('category')}</label>
-          <input
-            type="text"
-            id="category"
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-200 focus:ring-opacity-50"
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="language" className="block text-sm font-medium text-gray-700">{t('language')}</label>
-          <select
-            id="language"
-            name="language"
-            value={formData.language}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-200 focus:ring-opacity-50"
+          <div>
+            <label htmlFor="content" className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('content')}
+            </label>
+            <textarea
+              id="content"
+              name="content"
+              rows="10"
+              value={formData.content}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+            ></textarea>
+          </div>
+          
+          <div>
+            <label htmlFor="media" className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('media')}
+            </label>
+            <input
+              type="file"
+              id="media"
+              name="media"
+              onChange={handleFileChange}
+              className="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="tags" className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('tags')}
+            </label>
+            <input
+              type="text"
+              id="tags"
+              name="tags"
+              value={formData.tags}
+              onChange={handleChange}
+              placeholder={t('tagsPlaceholder')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('category')}
+            </label>
+            <input
+              type="text"
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="language" className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('language')}
+            </label>
+            <select
+              id="language"
+              name="language"
+              value={formData.language}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+            >
+              <option value="en">{t('english')}</option>
+              <option value="ne">{t('nepali')}</option>
+            </select>
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400"
           >
-            <option value="en">{t('english')}</option>
-            <option value="ne">{t('nepali')}</option>
-          </select>
-        </div>
-        
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-        >
-          {loading ? t('submitting') : t('submitArticle')}
-        </button>
-      </form>
+            {loading ? t('submitting') : t('submitArticle')}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

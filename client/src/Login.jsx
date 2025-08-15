@@ -1,10 +1,10 @@
-// src/Login.jsx (Final Corrected Version)
+// src/Login.jsx (Styled Version)
 
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { UserContext } from './context/UserContext';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const Login = () => {
@@ -25,12 +25,9 @@ const Login = () => {
 
       const { token, user } = res.data;
 
-      // CORRECTED: Call the login function to update the global state
       login(token, user);
       toast.success(t('loginSuccess'));
 
-      // Use a setTimeout with a 0ms delay to give the state update time to process
-      // This is a reliable way to ensure the UI re-renders before navigation
       setTimeout(() => {
         navigate('/');
       }, 0);
@@ -42,37 +39,43 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center">{t('login')}</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">{t('login')}</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700">{t('username')}</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('username')}</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">{t('password')}</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('password')}</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             />
           </div>
           <button
             type="submit"
-            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+            className="w-full py-3 px-4 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             {t('login')}
           </button>
         </form>
+        <div className="mt-6 text-center text-gray-600">
+          {t('noAccount')}
+          <Link to="/register" className="text-indigo-600 hover:underline ml-1">
+            {t('registerHere')}
+          </Link>
+        </div>
       </div>
     </div>
   );

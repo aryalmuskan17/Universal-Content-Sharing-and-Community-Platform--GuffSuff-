@@ -1,4 +1,4 @@
-// client/src/components/ArticleCard.jsx (Final Corrected Version)
+// client/src/components/ArticleCard.jsx (Styled Version)
 
 import React, { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,16 +7,19 @@ import { toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
 import SubscribeButton from './SubscribeButton';
 import { UserContext } from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
-const ArticleCard = ({ article, onViewArticleClick }) => {
+const ArticleCard = ({ article }) => {
   const { t } = useTranslation();
   const [currentArticle, setCurrentArticle] = useState(article);
   const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const contentSnippet = currentArticle.content.substring(0, 150) + '...';
   const formattedDate = new Date(currentArticle.createdAt).toLocaleDateString();
 
-  const handleLike = async () => {
+  const handleLike = async (e) => {
+    e.stopPropagation(); // Prevent the card click from triggering
     try {
       const res = await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/like`);
       setCurrentArticle(res.data.data);
@@ -27,7 +30,8 @@ const ArticleCard = ({ article, onViewArticleClick }) => {
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = async (e) => {
+    e.stopPropagation(); // Prevent the card click from triggering
     try {
       const res = await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/share`);
       setCurrentArticle(res.data.data);
@@ -39,91 +43,101 @@ const ArticleCard = ({ article, onViewArticleClick }) => {
   };
 
   const handleArticleClick = () => {
-    onViewArticleClick(currentArticle._id);
+    navigate(`/article/${currentArticle._id}`);
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105">
-      <div className="p-6">
-        <div className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">
-          {currentArticle.category || t('uncategorized')}
+    <div 
+      className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 cursor-pointer flex flex-col h-full"
+      onClick={handleArticleClick}
+    >
+      {currentArticle.mediaUrl && (
+        <div className="h-56 w-full overflow-hidden">
+          {currentArticle.mediaUrl.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/) ? (
+            <img
+              src={`http://localhost:5001/${currentArticle.mediaUrl}`}
+              alt={currentArticle.title}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <video
+              controls
+              src={`http://localhost:5001/${currentArticle.mediaUrl}`}
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
+      )}
+
+      <div className="p-6 flex flex-col justify-between flex-1">
+        <div>
+          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">
+            {currentArticle.category || t('uncategorized')}
+          </span>
+          
+          <h2 className="mt-2 text-2xl font-bold leading-tight text-gray-900 line-clamp-2">
+            {currentArticle.title}
+          </h2>
+          
+          <p className="mt-4 text-gray-500 line-clamp-3">
+            {contentSnippet}
+          </p>
         </div>
         
-        <h2 
-          className="block mt-1 text-2xl leading-tight font-medium text-black hover:underline cursor-pointer"
-          onClick={handleArticleClick}
-        >
-          {currentArticle.title}
-        </h2>
-        
-        {/* MOVED: Conditional thumbnail display is now here */}
-        {currentArticle.mediaUrl && (
-          <div className="mt-2 h-48 w-full overflow-hidden">
-            {currentArticle.mediaUrl.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/) ? (
-              <img
-                src={`http://localhost:5001/${currentArticle.mediaUrl}`}
-                alt={currentArticle.title}
-                className="h-full w-full object-cover rounded-lg"
-              />
-            ) : (
-              <video
-                controls
-                src={`http://localhost:5001/${currentArticle.mediaUrl}`}
-                className="h-full w-full object-cover rounded-lg"
-              />
+        <div className="mt-6 flex items-center justify-between">
+          <div className="flex items-center space-x-1">
+            <div className="text-sm text-gray-400">
+              <span className="font-semibold">{t('by')}:</span>
+            </div>
+            <div className="text-sm font-medium text-gray-700">
+              {currentArticle.author?.username || 'Unknown'}
+            </div>
+          </div>
+          
+          <div className="flex-shrink-0">
+            {user && currentArticle.author && user._id !== currentArticle.author._id && (
+              <SubscribeButton publisherId={currentArticle.author._id} />
             )}
           </div>
-        )}
-
-        <p className="mt-4 text-gray-500">
-          {contentSnippet}
-        </p>
-        
-        <div className="mt-4 flex items-center space-x-2">
-          <div className="text-gray-400 text-sm">
-            <span className="font-semibold">{t('by')}:</span> {currentArticle.author?.username || 'Unknown'}
-          </div>
-
-          {user && currentArticle.author && user._id !== currentArticle.author._id && (
-            <SubscribeButton publisherId={currentArticle.author._id} />
-          )}
-
-          <span className="ml-4 text-gray-400 text-sm">
-            <span className="font-semibold">{t('publishedOn')}:</span> {formattedDate}
-          </span>
         </div>
-
-        <div className="mt-4 flex items-center space-x-4 text-gray-500 text-sm">
-            <span className="flex items-center">
-                <span className="font-semibold">{currentArticle.views || 0}</span> Views
-            </span>
-            <span className="flex items-center">
-                <span className="font-semibold">{currentArticle.likes || 0}</span> Likes
-            </span>
-            <span className="flex items-center">
-                <span className="font-semibold">{currentArticle.shares || 0}</span> Shares
-            </span>
+        
+        <div className="mt-4 flex flex-wrap gap-4 items-center text-gray-500 text-sm">
+          <div className="flex items-center space-x-1">
+            <span className="font-semibold">{currentArticle.views || 0}</span>
+            <span>Views</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <span className="font-semibold">{currentArticle.likes || 0}</span>
+            <span>Likes</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <span className="font-semibold">{currentArticle.shares || 0}</span>
+            <span>Shares</span>
+          </div>
+          <div className="ml-auto text-sm text-gray-400">
+            {formattedDate}
+          </div>
         </div>
         
         <div className="mt-4 flex space-x-2">
-            <button
-                onClick={handleLike}
-                className="bg-green-500 text-white py-1 px-3 rounded-lg text-sm hover:bg-green-600 transition-colors"
-            >
-                Like
-            </button>
-            <button
-                onClick={handleShare}
-                className="bg-blue-500 text-white py-1 px-3 rounded-lg text-sm hover:bg-blue-600 transition-colors"
-            >
-                Share
-            </button>
+          <button
+            onClick={handleLike}
+            className="flex-1 py-2 text-sm font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition-colors"
+          >
+            Like
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex-1 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Share
+          </button>
         </div>
 
         {currentArticle.tags && currentArticle.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
             {currentArticle.tags.map(tag => (
-              <span key={tag} className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded-full">
+              <span key={tag} className="px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded-full font-medium">
                 {tag}
               </span>
             ))}

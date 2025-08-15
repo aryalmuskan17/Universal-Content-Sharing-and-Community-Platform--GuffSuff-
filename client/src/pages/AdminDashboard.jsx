@@ -1,4 +1,4 @@
-// client/src/pages/AdminDashboard.jsx (Final Corrected Version)
+// client/src/pages/AdminDashboard.jsx (Styled Version)
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -62,23 +62,27 @@ const AdminDashboard = () => {
   const handleApprove = (articleId) => handleStatusUpdate(articleId, 'published');
   const handleReject = (articleId) => handleStatusUpdate(articleId, 'rejected');
 
-  if (loading) return <div className="text-center p-4">{t('loadingPendingArticles')}</div>;
-  if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
+  if (loading) {
+    return <div className="text-center p-8 text-xl font-medium text-gray-600">{t('loadingPendingArticles')}</div>;
+  }
+  if (error) {
+    return <div className="text-center p-8 text-red-500 font-medium">{error}</div>;
+  }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">{t('adminDashboard')} - {t('pendingArticles')}</h1>
+    <div className="bg-white p-6 rounded-xl shadow-lg my-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">{t('adminDashboard')} - {t('pendingArticles')}</h1>
       
       {pendingArticles.length === 0 ? (
-        <div className="text-center text-gray-500">{t('noPendingArticles')}</div>
+        <div className="text-center text-gray-500 p-4">{t('noPendingArticles')}</div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {pendingArticles.map(article => (
-            <div key={article._id} className="bg-white shadow-md rounded-lg overflow-hidden">
+            <div key={article._id} className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
               
-              {/* NEW: Conditional thumbnail display for admin page */}
+              {/* Conditional thumbnail display */}
               {article.mediaUrl && (
-                <div className="h-48 w-full overflow-hidden">
+                <div className="h-64 w-full overflow-hidden">
                   {article.mediaUrl.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/) ? (
                     <img
                       src={`http://localhost:5001/${article.mediaUrl}`}
@@ -96,22 +100,26 @@ const AdminDashboard = () => {
               )}
               
               <div className="p-6">
-                <h2 className="text-xl font-semibold">{article.title}</h2>
+                <h2 className="text-2xl font-bold text-gray-800">{article.title}</h2>
                 <p className="text-gray-600 mt-2 line-clamp-3">{article.content}</p>
-                <div className="mt-4 text-sm text-gray-500">
-                  <span className="font-medium">{t('author')}:</span> {article.author.username}
-                  <span className="ml-4 font-medium">{t('category')}:</span> {article.category}
+                <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
+                  <span>
+                    <span className="font-semibold text-gray-700">{t('author')}:</span> {article.author.username}
+                  </span>
+                  <span>
+                    <span className="font-semibold text-gray-700">{t('category')}:</span> {article.category}
+                  </span>
                 </div>
-                <div className="mt-4 flex space-x-4">
+                <div className="mt-6 flex space-x-4">
                   <button
                     onClick={() => handleApprove(article._id)}
-                    className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
+                    className="flex-1 py-3 px-4 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors"
                   >
                     {t('approve')}
                   </button>
                   <button
                     onClick={() => handleReject(article._id)}
-                    className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600"
+                    className="flex-1 py-3 px-4 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors"
                   >
                     {t('reject')}
                   </button>

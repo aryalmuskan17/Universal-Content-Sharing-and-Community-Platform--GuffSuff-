@@ -1,9 +1,10 @@
-// client/src/pages/AnalyticsDashboard.jsx (Final Corrected Version)
+// client/src/pages/AnalyticsDashboard.jsx (Styled Version)
 
 import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
+import { FaFileAlt, FaChartPie, FaUsers } from 'react-icons/fa';
 
 const AnalyticsDashboard = () => {
   const { t } = useTranslation();
@@ -17,7 +18,7 @@ const AnalyticsDashboard = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get('http://localhost:5001/api/analytics/dashboard', {
-          headers: { 'x-auth-token': token } // CORRECTED: Use 'x-auth-token'
+          headers: { 'x-auth-token': token }
         });
         setAnalyticsData(response.data.data);
         setLoading(false);
@@ -34,31 +35,40 @@ const AnalyticsDashboard = () => {
   }, [user, t]);
 
   if (loading) {
-    return <div className="text-center mt-10 text-xl">{t('loadingAnalytics')}</div>;
+    return <div className="text-center p-8 text-xl font-medium text-gray-600">{t('loadingAnalytics')}</div>;
   }
 
   if (error) {
-    return <div className="text-center mt-10 text-red-500">{error}</div>;
+    return <div className="text-center p-8 text-red-500 font-medium">{error}</div>;
   }
 
   if (!analyticsData) {
-    return <div className="text-center mt-10 text-gray-500">{t('noDataAvailable')}</div>;
+    return <div className="text-center p-8 text-xl font-medium text-gray-500">{t('noDataAvailable')}</div>;
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">{t('analyticsDashboard')}</h1>
+    <div className="bg-white p-6 rounded-xl shadow-lg my-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">{t('analyticsDashboard')}</h1>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold mb-2">{t('totalArticles')}</h2>
-          <p className="text-4xl font-bold text-gray-800">{analyticsData.totalArticles}</p>
+        {/* Total Articles Card */}
+        <div className="bg-indigo-50 p-6 rounded-lg shadow-md flex items-center space-x-4">
+          <FaFileAlt className="text-4xl text-indigo-500" />
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800">{t('totalArticles')}</h2>
+            <p className="text-4xl font-bold text-gray-800">{analyticsData.totalArticles}</p>
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold mb-2">{t('articlesByStatus')}</h2>
-          <ul>
+        {/* Articles by Status Card */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center mb-4 space-x-2">
+            <FaChartPie className="text-2xl text-indigo-500" />
+            <h2 className="text-xl font-semibold text-gray-800">{t('articlesByStatus')}</h2>
+          </div>
+          <ul className="space-y-2">
             {analyticsData.articlesByStatus.map(item => (
-              <li key={item._id} className="flex justify-between items-center text-lg mb-1">
+              <li key={item._id} className="flex justify-between items-center text-lg text-gray-700">
                 <span>{item._id.charAt(0).toUpperCase() + item._id.slice(1)}:</span>
                 <span className="font-bold">{item.count}</span>
               </li>
@@ -66,11 +76,15 @@ const AnalyticsDashboard = () => {
           </ul>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold mb-2">{t('articlesByPublisher')}</h2>
-          <ul>
+        {/* Articles by Publisher Card */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center mb-4 space-x-2">
+            <FaUsers className="text-2xl text-indigo-500" />
+            <h2 className="text-xl font-semibold text-gray-800">{t('articlesByPublisher')}</h2>
+          </div>
+          <ul className="space-y-2">
             {analyticsData.articlesByPublisher.map(item => (
-              <li key={item.publisher} className="flex justify-between items-center text-lg mb-1">
+              <li key={item.publisher} className="flex justify-between items-center text-lg text-gray-700">
                 <span>{item.publisher}:</span>
                 <span className="font-bold">{item.count}</span>
               </li>

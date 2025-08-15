@@ -1,4 +1,4 @@
-// src/components/SubscribeButton.jsx
+// src/components/SubscribeButton.jsx (Styled Version)
 
 import React, { useContext } from 'react';
 import axios from 'axios';
@@ -10,8 +10,9 @@ const SubscribeButton = ({ publisherId }) => {
   const { t } = useTranslation();
   const { user, token, updateUserContext } = useContext(UserContext);
 
+  // Don't show the button if not a reader, or if it's the publisher themselves
   if (!user || user.role !== 'Reader' || user._id === publisherId) {
-    return null; // Don't show the button if not a reader, or if it's the publisher themselves
+    return null; 
   }
   
   const isSubscribed = user.subscriptions?.includes(publisherId);
@@ -20,12 +21,12 @@ const SubscribeButton = ({ publisherId }) => {
     try {
       const config = {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'x-auth-token': token,
         },
       };
       const res = await axios.put(`http://localhost:5001/api/auth/profile/subscribe/${publisherId}`, {}, config);
       toast.success(res.data.message);
-      updateUserContext({ subscriptions: res.data.subscriptions }); // Update the context with new subscriptions
+      updateUserContext({ subscriptions: res.data.subscriptions });
     } catch (err) {
       toast.error(err.response?.data?.error || t('subscriptionFailed'));
     }
@@ -35,12 +36,12 @@ const SubscribeButton = ({ publisherId }) => {
     try {
       const config = {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'x-auth-token': token,
         },
       };
       const res = await axios.put(`http://localhost:5001/api/auth/profile/unsubscribe/${publisherId}`, {}, config);
       toast.success(res.data.message);
-      updateUserContext({ subscriptions: res.data.subscriptions }); // Update the context with new subscriptions
+      updateUserContext({ subscriptions: res.data.subscriptions });
     } catch (err) {
       toast.error(err.response?.data?.error || t('unsubscriptionFailed'));
     }
@@ -49,11 +50,15 @@ const SubscribeButton = ({ publisherId }) => {
   return (
     <button
       onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
-      className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors duration-300 ${
-        isSubscribed
-          ? 'bg-gray-500 text-white hover:bg-gray-600'
-          : 'bg-blue-600 text-white hover:bg-blue-700'
-      }`}
+      className={`
+        py-2 px-4 rounded-full font-medium text-sm transition-colors duration-200
+        focus:outline-none focus:ring-2 focus:ring-offset-2
+        ${
+          isSubscribed
+            ? 'bg-transparent border border-gray-400 text-gray-600 hover:bg-gray-100 focus:ring-gray-300'
+            : 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500'
+        }
+      `}
     >
       {isSubscribed ? t('unsubscribe') : t('subscribe')}
     </button>

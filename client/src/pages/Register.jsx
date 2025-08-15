@@ -1,3 +1,4 @@
+// src/Register.jsx (Styled Version)
 
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
@@ -5,10 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const { t } = useTranslation();
   const { login } = useContext(UserContext);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -22,23 +25,25 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // CORRECTED: The back-end now sends the token and user info on success
       const res = await axios.post('http://localhost:5001/api/auth/register', formData);
-      login(res.data.token, res.data.user); // Pass the user info to the context
+      login(res.data.token, res.data.user);
       toast.success(res.data.message);
+      
+      setTimeout(() => {
+        navigate('/');
+      }, 0);
     } catch (err) {
-      // CORRECTED: Correctly check for the 'error' field in the response
       toast.error(err.response?.data?.error || t('registrationFailed'));
     }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
-        <h2 className="text-3xl font-bold text-center">{t('register')}</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">{t('register')}</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="text-sm font-bold text-gray-700 block" htmlFor="username">
+            <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="username">
               {t('username')}
             </label>
             <input
@@ -48,11 +53,11 @@ const Register = () => {
               value={formData.username}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             />
           </div>
           <div>
-            <label className="text-sm font-bold text-gray-700 block" htmlFor="password">
+            <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="password">
               {t('password')}
             </label>
             <input
@@ -62,12 +67,12 @@ const Register = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             />
           </div>
 
           <div>
-            <label className="text-sm font-bold text-gray-700 block mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t('userRole')}
             </label>
             <div className="flex space-x-4">
@@ -78,7 +83,7 @@ const Register = () => {
                   value="Publisher"
                   checked={formData.role === 'Publisher'}
                   onChange={handleChange}
-                  className="form-radio h-4 w-4 text-blue-600"
+                  className="form-radio h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                 />
                 <span className="ml-2 text-gray-700">{t('publisher')}</span>
               </label>
@@ -89,7 +94,7 @@ const Register = () => {
                   value="Reader"
                   checked={formData.role === 'Reader'}
                   onChange={handleChange}
-                  className="form-radio h-4 w-4 text-blue-600"
+                  className="form-radio h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                 />
                 <span className="ml-2 text-gray-700">{t('reader')}</span>
               </label>
@@ -98,11 +103,17 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full px-4 py-2 text-lg font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="w-full py-3 px-4 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             {t('register')}
           </button>
         </form>
+        <div className="mt-6 text-center text-gray-600">
+          {t('alreadyHaveAccount')}
+          <Link to="/login" className="text-indigo-600 hover:underline ml-1">
+            {t('loginHere')}
+          </Link>
+        </div>
       </div>
     </div>
   );
