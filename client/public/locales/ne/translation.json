@@ -61,5 +61,20 @@
   "publisher": "प्रकाशक",
   "reader": "पाठक",
   "alreadyHaveAccount": "पहिले नै खाता छ?",
-  "loginHere": "यहाँ लगइन गर्नुहोस्"
+  "loginHere": "यहाँ लगइन गर्नुहोस्",
+
+  "loadingAnalytics": "विश्लेषण लोड हुँदैछ...",
+  "yourArticlePerformance": "तपाईंको लेख प्रदर्शन",
+  "totalViews": "कुल हेराइहरू",
+  "totalLikes": "कुल मनपराइहरू",
+  "totalShares": "कुल साझेदारीहरू",
+  "views": "हेराइहरू",
+  "likes": "मनपराइहरू",
+  "shares": "साझेदारीहरू",
+
+  "allArticles": "सबै लेखहरू",
+  "status": "स्थिति",
+  "actions": "कार्यहरू",
+  "viewArticle": "लेख हेर्नुहोस्",
+  "unpublish": "अप्रकाशन"
 }

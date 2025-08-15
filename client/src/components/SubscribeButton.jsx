@@ -17,7 +17,9 @@ const SubscribeButton = ({ publisherId }) => {
   
   const isSubscribed = user.subscriptions?.includes(publisherId);
 
-  const handleSubscribe = async () => {
+  // CORRECTED: Added the event object 'e' and called e.stopPropagation()
+  const handleSubscribe = async (e) => {
+    e.stopPropagation(); 
     try {
       const config = {
         headers: {
@@ -32,7 +34,9 @@ const SubscribeButton = ({ publisherId }) => {
     }
   };
 
-  const handleUnsubscribe = async () => {
+  // CORRECTED: Added the event object 'e' and called e.stopPropagation()
+  const handleUnsubscribe = async (e) => {
+    e.stopPropagation();
     try {
       const config = {
         headers: {

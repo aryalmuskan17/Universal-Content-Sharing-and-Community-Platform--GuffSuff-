@@ -15,6 +15,11 @@ const ArticleCard = ({ article }) => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
+  // If the article is already rejected, don't show it in the feed
+  if (currentArticle.status === 'rejected') {
+    return null;
+  }
+
   const contentSnippet = currentArticle.content.substring(0, 150) + '...';
   const formattedDate = new Date(currentArticle.createdAt).toLocaleDateString();
 
@@ -45,6 +50,28 @@ const ArticleCard = ({ article }) => {
   const handleArticleClick = () => {
     navigate(`/article/${currentArticle._id}`);
   };
+
+  // NEW: Admin approval/rejection handlers
+  const handleStatusChange = async (e, newStatus) => {
+    e.stopPropagation();
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { 'x-auth-token': token } };
+      const res = await axios.patch(
+        `http://localhost:5001/api/articles/${currentArticle._id}/status`,
+        { status: newStatus },
+        config
+      );
+      setCurrentArticle(res.data.data);
+      toast.success(`Article has been ${newStatus}.`);
+    } catch (err) {
+      toast.error(`Failed to change article status.`);
+      console.error(err);
+    }
+  };
+
+  const handleApprove = (e) => handleStatusChange(e, 'published');
+  const handleReject = (e) => handleStatusChange(e, 'rejected');
 
   return (
     <div 
@@ -95,7 +122,7 @@ const ArticleCard = ({ article }) => {
           </div>
           
           <div className="flex-shrink-0">
-            {user && currentArticle.author && user._id !== currentArticle.author._id && (
+            {user && currentArticle.author && user._id !== currentArticle.author._id && currentArticle.author.role !== 'Admin' && (
               <SubscribeButton publisherId={currentArticle.author._id} />
             )}
           </div>
@@ -120,18 +147,39 @@ const ArticleCard = ({ article }) => {
         </div>
         
         <div className="mt-4 flex space-x-2">
-          <button
-            onClick={handleLike}
-            className="flex-1 py-2 text-sm font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition-colors"
-          >
-            Like
-          </button>
-          <button
-            onClick={handleShare}
-            className="flex-1 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Share
-          </button>
+          {user?.role === 'Admin' && currentArticle.status === 'pending' ? (
+            // NEW: Render Approve/Reject buttons for admin on pending articles
+            <>
+              <button
+                onClick={handleApprove}
+                className="flex-1 py-2 text-sm font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
+              >
+                Approve
+              </button>
+              <button
+                onClick={handleReject}
+                className="flex-1 py-2 text-sm font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Reject
+              </button>
+            </>
+          ) : (
+            // Existing Like/Share buttons for other users/statuses
+            <>
+              <button
+                onClick={handleLike}
+                className="flex-1 py-2 text-sm font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition-colors"
+              >
+                Like
+              </button>
+              <button
+                onClick={handleShare}
+                className="flex-1 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Share
+              </button>
+            </>
+          )}
         </div>
 
         {currentArticle.tags && currentArticle.tags.length > 0 && (
