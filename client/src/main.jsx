@@ -4,9 +4,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { UserProvider } from './context/UserContext';
 import { BrowserRouter } from 'react-router-dom'; // NEW IMPORT
-
-// Ensure your styles (like Tailwind CSS) are imported here if needed
-// import './index.css'; 
+ import './index.css'; 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
