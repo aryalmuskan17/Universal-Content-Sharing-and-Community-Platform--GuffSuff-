@@ -3,7 +3,7 @@
   "articles": "लेखहरू",
   "createArticle": "लेख सिर्जना गर्नुहोस्",
   "adminDashboard": "प्रशासक ड्यासबोर्ड",
-  "login": "लग - इन",
+  "login": "लग इन",
   "logout": "बाहिर निस्कनुहोस्",
   "accessDenied": "पहुँच अस्वीकृत",
   
@@ -41,5 +41,25 @@
 
   "uncategorized": "अवर्गीकृत",
   "by": "द्वारा",
-  "publishedOn": "प्रकाशित मिति"
+  "publishedOn": "प्रकाशित मिति",
+
+  "searchPlaceholder": "खोज्नुहोस्...",
+  "username": "प्रयोगकर्ता नाम",
+  "password": "पासवर्ड",
+  "noAccount": "खाता छैन?",
+  "registerHere": "यहाँ दर्ता गर्नुहोस्",
+  
+  "loginSuccess": "लगइन सफल भयो!",
+  "profile": "प्रोफाइल",
+  "edit": "सम्पादन",
+  "myArticles": "मेरा लेखहरू",
+  "publisherAnalytics": "प्रकाशक विश्लेषण",
+  "delete": "मेटाउनुहोस्",
+
+  "register": "दर्ता गर्नुहोस्",
+  "userRole": "प्रयोगकर्ताको भूमिका",
+  "publisher": "प्रकाशक",
+  "reader": "पाठक",
+  "alreadyHaveAccount": "पहिले नै खाता छ?",
+  "loginHere": "यहाँ लगइन गर्नुहोस्"
 }

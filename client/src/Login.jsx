@@ -1,4 +1,4 @@
-// src/Login.jsx (Styled Version)
+// client/src/pages/Login.jsx (Final Corrected Version)
 
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
@@ -51,6 +51,7 @@ const Login = () => {
               onChange={(e) => setUsername(e.target.value)}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              autoComplete="username" // <-- Added this line
             />
           </div>
           <div>
@@ -61,6 +62,7 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              autoComplete="current-password"
             />
           </div>
           <button

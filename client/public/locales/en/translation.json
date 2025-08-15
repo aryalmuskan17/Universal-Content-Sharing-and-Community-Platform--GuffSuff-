@@ -41,5 +41,25 @@
 
   "uncategorized": "Uncategorized",
   "by": "By",
-  "publishedOn": "Published on"
+  "publishedOn": "Published on",
+
+  "searchPlaceholder": "Search...",
+  "username": "Username",
+  "password": "Password",
+  "noAccount": "Don't have an account?",
+  "registerHere": "Register here",
+  
+  "loginSuccess": "Login successful!",
+  "profile": "Profile",
+  "edit": "Edit",
+  "myArticles": "My Articles",
+  "publisherAnalytics": "Publisher Analytics",
+  "delete": "Delete",
+
+  "register": "Register",
+  "userRole": "User Role",
+  "publisher": "Publisher",
+  "reader": "Reader",
+  "alreadyHaveAccount": "Already have an account?",
+  "loginHere": "Login here"
 }

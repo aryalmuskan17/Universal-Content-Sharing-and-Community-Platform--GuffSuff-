@@ -1,4 +1,4 @@
-// src/Register.jsx (Styled Version)
+// client/src/pages/Register.jsx (Final Corrected Version)
 
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
@@ -54,6 +54,7 @@ const Register = () => {
               onChange={handleChange}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              autoComplete="username"
             />
           </div>
           <div>
@@ -68,6 +69,7 @@ const Register = () => {
               onChange={handleChange}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              autoComplete="new-password"
             />
           </div>
 
