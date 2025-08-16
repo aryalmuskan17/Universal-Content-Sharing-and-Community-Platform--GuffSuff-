@@ -1,4 +1,4 @@
-// client/src/components/ArticleCard.jsx (Styled Version)
+// client/src/components/ArticleCard.jsx (Final Corrected Version)
 
 import React, { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -35,14 +35,23 @@ const ArticleCard = ({ article }) => {
     }
   };
 
+  // CORRECTED: This function no longer updates the component's state
   const handleShare = async (e) => {
     e.stopPropagation(); // Prevent the card click from triggering
     try {
-      const res = await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/share`);
-      setCurrentArticle(res.data.data);
-      toast.success('Article shared!');
+      // Step 1: Construct the article URL
+      const articleUrl = `${window.location.origin}/article/${currentArticle._id}`;
+
+      // Step 2: Copy the URL to the clipboard
+      await navigator.clipboard.writeText(articleUrl);
+      
+      // Step 3: Call the API to increment the share count
+      await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/share`);
+      
+      // Step 4: Provide feedback to the user
+      toast.success('Link copied to clipboard and share count updated!');
     } catch (err) {
-      toast.error('Failed to share article.');
+      toast.error('Failed to copy link or share article.');
       console.error(err);
     }
   };
@@ -148,7 +157,7 @@ const ArticleCard = ({ article }) => {
         
         <div className="mt-4 flex space-x-2">
           {user?.role === 'Admin' && currentArticle.status === 'pending' ? (
-            // NEW: Render Approve/Reject buttons for admin on pending articles
+            // Render Approve/Reject buttons for admin on pending articles
             <>
               <button
                 onClick={handleApprove}
