@@ -1,10 +1,13 @@
-// src/components/Layout.jsx (Styled Version)
+// src/components/Layout.jsx (Updated with Logo and Name)
 
 import React, { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 import { Outlet, useNavigate } from 'react-router-dom';
 import NotificationBell from './NotificationBell.jsx';
+
+// NEW: Import your logo image
+import logo from '../assets/logo.png'; 
 
 const Layout = () => {
     const { logout, user } = useContext(UserContext);
@@ -24,8 +27,12 @@ const Layout = () => {
         <div className="min-h-screen flex flex-col font-sans bg-gray-100">
             <nav className="bg-white text-gray-800 shadow-md p-4 flex flex-col md:flex-row items-center justify-between sticky top-0 z-50">
                 {/* Logo and App Title */}
-                <span className="text-2xl font-extrabold text-indigo-600 cursor-pointer mb-2 md:mb-0" onClick={() => navigate('/')}>
-                    News Portal
+                <span className="flex items-center cursor-pointer mb-2 md:mb-0" onClick={() => navigate('/')}>
+                    <img src={logo} alt="GuffSuff Logo" className="h-8 w-auto mr-2" />
+                    <span className="text-2xl font-extrabold text-indigo-600">
+                        Guff
+                        Suff
+                    </span>
                 </span>
 
                 {/* Language Switcher and Primary Nav Buttons */}
