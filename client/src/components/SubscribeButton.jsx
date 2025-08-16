@@ -1,23 +1,24 @@
-// src/components/SubscribeButton.jsx (Styled Version)
+// src/components/SubscribeButton.jsx (Updated for Public Interaction)
 
 import React, { useContext } from 'react';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom'; // NEW: Import useNavigate
 
 const SubscribeButton = ({ publisherId }) => {
   const { t } = useTranslation();
   const { user, token, updateUserContext } = useContext(UserContext);
+  const navigate = useNavigate(); // NEW: Initialize useNavigate
 
-  // Don't show the button if not a reader, or if it's the publisher themselves
-  if (!user || user.role !== 'Reader' || user._id === publisherId) {
-    return null; 
+  // UPDATED: Now only hide the button if it's the publisher themselves or not a reader
+  if (user && (user.role !== 'Reader' || user._id === publisherId)) {
+    return null;
   }
   
-  const isSubscribed = user.subscriptions?.includes(publisherId);
+  const isSubscribed = user?.subscriptions?.includes(publisherId);
 
-  // CORRECTED: Added the event object 'e' and called e.stopPropagation()
   const handleSubscribe = async (e) => {
     e.stopPropagation(); 
     try {
@@ -34,7 +35,6 @@ const SubscribeButton = ({ publisherId }) => {
     }
   };
 
-  // CORRECTED: Added the event object 'e' and called e.stopPropagation()
   const handleUnsubscribe = async (e) => {
     e.stopPropagation();
     try {
@@ -51,9 +51,26 @@ const SubscribeButton = ({ publisherId }) => {
     }
   };
 
+  // NEW: A common handler to check for user authentication before proceeding
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.info('Please log in to subscribe.');
+      navigate('/login');
+      return;
+    }
+    // If the user is logged in, call the appropriate handler
+    if (isSubscribed) {
+      handleUnsubscribe(e);
+    } else {
+      handleSubscribe(e);
+    }
+  };
+
   return (
     <button
-      onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
+      // UPDATED: Use the new handleClick handler
+      onClick={handleClick}
       className={`
         py-2 px-4 rounded-full font-medium text-sm transition-colors duration-200
         focus:outline-none focus:ring-2 focus:ring-offset-2

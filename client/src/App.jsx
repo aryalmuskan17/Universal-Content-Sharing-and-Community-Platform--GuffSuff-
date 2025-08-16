@@ -1,4 +1,4 @@
-// client/src/App.jsx (Final Corrected Version)
+// client/src/App.jsx (Corrected Routing)
 
 import React, { useContext } from 'react';
 import { ToastContainer } from 'react-toastify';
@@ -28,26 +28,31 @@ function App() {
     <div className="min-h-screen">
       <ToastContainer position="bottom-right" />
       <Routes>
-        {/* Public Routes */}
+        {/* Public Routes - No Layout */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
-        {/* Protected Routes - rendered inside the Layout */}
+        {/* All routes with the common Layout (header/footer) */}
         <Route element={<Layout />}>
+          {/* Public Routes with Layout */}
           <Route path="/" element={<ArticleList />} />
           <Route path="article/:articleId" element={<SingleArticle />} />
-          <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          
-          {/* Publisher & Admin Routes */}
-          <Route path="create-article" element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><CreateArticle /></ProtectedRoute>} />
-          <Route path="publisher-analytics" element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><PublisherAnalytics /></ProtectedRoute>} />
-          <Route path="edit-article/:articleId" element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><EditArticle /></ProtectedRoute>} />
-          
-          {/* Admin-only Routes */}
-          <Route path="admin-dashboard" element={<ProtectedRoute requiredRoles={['Admin']}><AdminDashboard /></ProtectedRoute>} />
-          <Route path="full-admin-dashboard" element={<ProtectedRoute requiredRoles={['Admin']}><FullAdminDashboard /></ProtectedRoute>} />
-          <Route path="analytics-dashboard" element={<ProtectedRoute requiredRoles={['Admin']}><AnalyticsDashboard /></ProtectedRoute>} />
-          <Route path="user-management" element={<ProtectedRoute requiredRoles={['Admin']}><UserManagement /></ProtectedRoute>} />
+
+          {/* Protected Routes with Layout */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="profile" element={<Profile />} />
+            
+            {/* Publisher & Admin Routes */}
+            <Route path="create-article" element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><CreateArticle /></ProtectedRoute>} />
+            <Route path="publisher-analytics" element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><PublisherAnalytics /></ProtectedRoute>} />
+            <Route path="edit-article/:articleId" element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><EditArticle /></ProtectedRoute>} />
+            
+            {/* Admin-only Routes */}
+            <Route path="admin-dashboard" element={<ProtectedRoute requiredRoles={['Admin']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="full-admin-dashboard" element={<ProtectedRoute requiredRoles={['Admin']}><FullAdminDashboard /></ProtectedRoute>} />
+            <Route path="analytics-dashboard" element={<ProtectedRoute requiredRoles={['Admin']}><AnalyticsDashboard /></ProtectedRoute>} />
+            <Route path="user-management" element={<ProtectedRoute requiredRoles={['Admin']}><UserManagement /></ProtectedRoute>} />
+          </Route>
 
           {/* Fallback for unknown URLs */}
           <Route path="*" element={<div>Page Not Found</div>} />

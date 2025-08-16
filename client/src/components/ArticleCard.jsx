@@ -23,11 +23,24 @@ const ArticleCard = ({ article }) => {
   const contentSnippet = currentArticle.content.substring(0, 150) + '...';
   const formattedDate = new Date(currentArticle.createdAt).toLocaleDateString();
 
+  // UPDATED: Now redirects to login if the user is not logged in
   const handleLike = async (e) => {
-    e.stopPropagation(); // Prevent the card click from triggering
+    e.stopPropagation();
+    if (!user) {
+      toast.info('Please log in to like this article.');
+      navigate('/login');
+      return;
+    }
     try {
-      const res = await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/like`);
-      setCurrentArticle(res.data.data);
+      // Step 1: Call the API to update the like count on the backend
+      await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/like`);
+      
+      // Step 2: Manually update the likes count in the state
+      setCurrentArticle(prevArticle => ({
+        ...prevArticle,
+        likes: (prevArticle.likes || 0) + 1
+      }));
+      
       toast.success('Article liked!');
     } catch (err) {
       toast.error('Failed to like article.');
@@ -35,9 +48,14 @@ const ArticleCard = ({ article }) => {
     }
   };
 
-  // CORRECTED: This function no longer updates the component's state
+  // UPDATED: Now redirects to login if the user is not logged in
   const handleShare = async (e) => {
-    e.stopPropagation(); // Prevent the card click from triggering
+    e.stopPropagation();
+    if (!user) {
+      toast.info('Please log in to share this article.');
+      navigate('/login');
+      return;
+    }
     try {
       // Step 1: Construct the article URL
       const articleUrl = `${window.location.origin}/article/${currentArticle._id}`;
@@ -131,7 +149,7 @@ const ArticleCard = ({ article }) => {
           </div>
           
           <div className="flex-shrink-0">
-            {user && currentArticle.author && user._id !== currentArticle.author._id && currentArticle.author.role !== 'Admin' && (
+            {currentArticle.author && user?._id !== currentArticle.author._id && currentArticle.author.role !== 'Admin' && (
               <SubscribeButton publisherId={currentArticle.author._id} />
             )}
           </div>

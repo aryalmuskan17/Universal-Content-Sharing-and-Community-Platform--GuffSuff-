@@ -1,4 +1,4 @@
-// src/pages/SingleArticle.jsx (Styled Version)
+// src/pages/SingleArticle.jsx (Corrected with Like/Share functionality)
 
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
@@ -7,8 +7,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft } from 'react-icons/fa';
-import { UserContext } from '../context/UserContext'; // NEW: Import UserContext
-import SubscribeButton from '../components/SubscribeButton'; // NEW: Import SubscribeButton
+import { UserContext } from '../context/UserContext';
+import SubscribeButton from '../components/SubscribeButton';
 
 const SingleArticle = () => {
   const { articleId } = useParams();
@@ -17,7 +17,7 @@ const SingleArticle = () => {
   const [loading, setLoading] = useState(true);
   const isViewIncremented = useRef(false);
   const { t } = useTranslation();
-  const { user } = useContext(UserContext); // NEW: Get user from context
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -64,6 +64,50 @@ const SingleArticle = () => {
     }
   }, [articleId]);
 
+  // NEW: handleLike function
+  const handleLike = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.info('Please log in to like this article.');
+      navigate('/login');
+      return;
+    }
+    try {
+      await axios.patch(`http://localhost:5001/api/articles/${article._id}/like`);
+      setArticle(prevArticle => ({
+        ...prevArticle,
+        likes: (prevArticle.likes || 0) + 1
+      }));
+      toast.success('Article liked!');
+    } catch (err) {
+      toast.error('Failed to like article.');
+      console.error(err);
+    }
+  };
+
+  // NEW: handleShare function
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.info('Please log in to share this article.');
+      navigate('/login');
+      return;
+    }
+    try {
+      const articleUrl = `${window.location.origin}/article/${article._id}`;
+      await navigator.clipboard.writeText(articleUrl);
+      await axios.patch(`http://localhost:5001/api/articles/${article._id}/share`);
+      setArticle(prevArticle => ({
+        ...prevArticle,
+        shares: (prevArticle.shares || 0) + 1
+      }));
+      toast.success('Link copied to clipboard and share count updated!');
+    } catch (err) {
+      toast.error('Failed to copy link or share article.');
+      console.error(err);
+    }
+  };
+
   // NEW: Admin approval/rejection handlers
   const handleStatusChange = async (newStatus) => {
     try {
@@ -76,8 +120,6 @@ const SingleArticle = () => {
       );
       setArticle(res.data.data);
       toast.success(`Article has been ${newStatus}.`);
-      // Optional: navigate back to the feed after approval/rejection
-      // navigate('/articles'); 
     } catch (err) {
       toast.error(`Failed to change article status.`);
       console.error(err);
@@ -112,11 +154,25 @@ const SingleArticle = () => {
           {t('by')}: <span className="font-semibold">{article.author?.username}</span> | {t('publishedOn')}: {new Date(article.createdAt).toLocaleDateString()}
         </p>
         
-        {user && article.author && user._id !== article.author._id && article.author.role !== 'Admin' && (
-          <div className="mt-2 md:mt-0">
+        {/* NEW: Buttons for Like, Share, and Subscribe */}
+        <div className="flex items-center space-x-2 mt-2 md:mt-0">
+          <button
+            onClick={handleLike}
+            className="py-2 px-4 text-sm font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition-colors"
+          >
+            Like
+          </button>
+          <button
+            onClick={handleShare}
+            className="py-2 px-4 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Share
+          </button>
+          {/* UPDATED: Subscribe button no longer has the user check here */}
+          {article.author && user?._id !== article.author._id && article.author.role !== 'Admin' && (
             <SubscribeButton publisherId={article.author._id} />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* NEW: Admin Approve/Reject buttons */}
@@ -160,8 +216,9 @@ const SingleArticle = () => {
       <div className="mt-10 flex flex-wrap gap-6 items-center text-gray-600 text-lg font-semibold">
         <div className="flex items-center space-x-2">
             <span>{article.views || 0}</span>
-            <span>Likes</span>
+            <span>Views</span>
         </div>
+        {/* CORRECTED: Removed duplicate 'Likes' display */}
         <div className="flex items-center space-x-2">
             <span>{article.likes || 0}</span>
             <span>Likes</span>
