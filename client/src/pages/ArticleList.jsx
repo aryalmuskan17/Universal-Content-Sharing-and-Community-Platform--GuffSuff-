@@ -1,4 +1,4 @@
-// client/src/pages/ArticleList.jsx (Styled Version)
+// client/src/pages/ArticleList.jsx (Final Version)
 
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
@@ -19,6 +19,9 @@ const ArticleList = () => {
   const [searchTerm, setSearchTerm] = useState(''); 
   const navigate = useNavigate();
 
+  // NEW: State for sorting, 'date' is the default
+  const [sortBy, setSortBy] = useState('date'); 
+
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       const fetchArticles = async () => {
@@ -26,13 +29,11 @@ const ArticleList = () => {
         setError('');
         try {
           const token = localStorage.getItem('token');
+          // The backend now handles role-based fetching and sorting from this single endpoint
           let apiUrl = 'http://localhost:5001/api/articles';
   
-          if (user?.role === 'Admin') {
-              apiUrl = 'http://localhost:5001/api/articles/admin/all';
-          }
-  
-          const combinedFilters = { ...filters, q: searchTerm };
+          // NEW: Add sortBy to the combined filters
+          const combinedFilters = { ...filters, q: searchTerm, sortBy };
           
           const config = {
             params: combinedFilters,
@@ -54,8 +55,9 @@ const ArticleList = () => {
 
     }, 500);
 
+    // NEW: Add sortBy to the dependency array
     return () => clearTimeout(delayDebounceFn);
-  }, [filters, t, user, searchTerm]);
+  }, [filters, t, user, searchTerm, sortBy]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
@@ -104,6 +106,20 @@ const ArticleList = () => {
             {t('all')}
           </button>
         </div>
+      </div>
+      
+      {/* NEW: Sorting Dropdown */}
+      <div className="flex justify-end mb-6">
+        <label htmlFor="sort-by" className="mr-2 text-sm font-medium text-gray-700">{t('sortBy')}</label>
+        <select 
+          id="sort-by"
+          value={sortBy} 
+          onChange={(e) => setSortBy(e.target.value)}
+          className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <option value="date">{t('newestFirst')}</option>
+          <option value="views">{t('mostViewed')}</option>
+        </select>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,4 +1,4 @@
-// server/routes/article.js (Final Corrected Version)
+// server/routes/article.js (Universal Article Route)
 
 const express = require('express');
 const router = express.Router();
@@ -62,27 +62,48 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
   }
 });
 
-// @desc    Get all published articles with filtering, searching, and sorting
+// @desc    Get all articles for all roles with filtering, searching, and sorting
 // @route   GET /api/articles
-// @access  Public (Reader)
+// @access  Public
 router.get('/', async (req, res) => {
   try {
-    const query = { status: 'published' };
+    let query = { status: 'published' };
+    const sort = {};
+
+    if (req.user?.role === 'Admin') {
+      query = {};
+    } else if (req.user?.role === 'Publisher') {
+      query = { author: req.user.id };
+    }
+
     if (req.query.category) {
       query.category = req.query.category;
     }
+
     if (req.query.q) {
       query.$or = [
         { title: { $regex: req.query.q, $options: 'i' } },
         { content: { $regex: req.query.q, $options: 'i' } },
       ];
     }
-    const articles = await Article.find(query).populate('author').select('+mediaUrl');
+    
+    if (req.query.sortBy) {
+        if (req.query.sortBy === 'views') {
+            sort.views = -1;
+        } else if (req.query.sortBy === 'date') {
+            sort.createdAt = -1;
+        }
+    } else {
+        sort.createdAt = -1;
+    }
+
+    const articles = await Article.find(query).populate('author').sort(sort).select('+mediaUrl');
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Server Error' });
   }
 });
+
 
 // @desc    Get all pending articles for Admin review
 // @route   GET /api/articles/pending
@@ -90,28 +111,6 @@ router.get('/', async (req, res) => {
 router.get('/pending', auth(['Admin']), async (req, res) => {
   try {
     const articles = await Article.find({ status: 'pending' }).populate('author').select('+mediaUrl');
-    res.status(200).json({ success: true, count: articles.length, data: articles });
-  } catch (err) {
-    res.status(500).json({ success: false, error: 'Server Error' });
-  }
-});
-
-// @desc    Get all articles for Admin dashboard with filtering, searching, and sorting
-// @route   GET /api/articles/admin/all
-// @access  Private (Admin only)
-router.get('/admin/all', auth(['Admin']), async (req, res) => {
-  try {
-    const query = {};
-    if (req.query.category) {
-      query.category = req.query.category;
-    }
-    if (req.query.q) {
-      query.$or = [
-        { title: { $regex: req.query.q, $options: 'i' } },
-        { content: { $regex: req.query.q, $options: 'i' } },
-      ];
-    }
-    const articles = await Article.find(query).populate('author').sort({ createdAt: -1 }).select('+mediaUrl');
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Server Error' });
@@ -200,6 +199,7 @@ router.patch('/:id/share', async (req, res) => {
 // @desc    Get performance analytics for a publisher's articles
 // @route   GET /api/articles/publisher/analytics
 // @access  Private (Publisher, Admin)
+// Note: This route is no longer necessary if you use the universal route
 router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
     const articles = await Article.find({ author: req.user.id }).select('+mediaUrl');
