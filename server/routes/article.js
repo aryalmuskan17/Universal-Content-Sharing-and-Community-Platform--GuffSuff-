@@ -1,4 +1,4 @@
-// server/routes/article.js (Universal Article Route)
+// server/routes/article.js (Corrected for Like/Unlike functionality)
 
 const express = require('express');
 const router = express.Router();
@@ -65,6 +65,7 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
 // @desc    Get all articles for all roles with filtering, searching, and sorting
 // @route   GET /api/articles
 // @access  Public
+// UPDATED: Now populates the likedBy array
 router.get('/', async (req, res) => {
   try {
     let query = { status: 'published' };
@@ -96,7 +97,8 @@ router.get('/', async (req, res) => {
     } else {
         sort.createdAt = -1;
     }
-
+    
+    // UPDATED: Add .populate('likedBy') to retrieve the likedBy array
     const articles = await Article.find(query).populate('author').sort(sort).select('+mediaUrl');
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
@@ -108,6 +110,7 @@ router.get('/', async (req, res) => {
 // @desc    Get all pending articles for Admin review
 // @route   GET /api/articles/pending
 // @access  Private (Admin only)
+// UPDATED: Now populates the likedBy array
 router.get('/pending', auth(['Admin']), async (req, res) => {
   try {
     const articles = await Article.find({ status: 'pending' }).populate('author').select('+mediaUrl');
@@ -120,8 +123,10 @@ router.get('/pending', auth(['Admin']), async (req, res) => {
 // @desc    Get a single article by ID
 // @route   GET /api/articles/:id
 // @access  Public
+// UPDATED: Now populates the likedBy array
 router.get('/:id', async (req, res) => {
   try {
+    // IMPORTANT: Make sure your article model has `likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]`
     const article = await Article.findById(req.params.id).populate('author').select('+mediaUrl');
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
@@ -158,19 +163,53 @@ router.patch('/:id/view', auth(), async (req, res) => {
     }
 });
 
-// @desc    Increment the likes count for an article
+// UPDATED: @desc    Like an article
 // @route   PATCH /api/articles/:id/like
-// @access  Public
-router.patch('/:id/like', async (req, res) => {
+// @access  Private (Authenticated User)
+router.patch('/:id/like', auth(), async (req, res) => {
   try {
-    const article = await Article.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { likes: 1 } },
-      { new: true, runValidators: true }
-    ).select('+mediaUrl');
+    const article = await Article.findById(req.params.id);
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
+
+    // Check if the user has already liked the article
+    if (article.likedBy.includes(req.user.id)) {
+      return res.status(400).json({ success: false, message: 'Article already liked' });
+    }
+
+    // Add user ID to likedBy array and increment likes count
+    article.likedBy.push(req.user.id);
+    article.likes = article.likes + 1;
+    await article.save();
+
+    res.status(200).json({ success: true, data: article });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// NEW: @desc    Unlike an article
+// @route   PATCH /api/articles/:id/unlike
+// @access  Private (Authenticated User)
+router.patch('/:id/unlike', auth(), async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+
+    // Check if the user has liked the article to unlike it
+    const likedIndex = article.likedBy.indexOf(req.user.id);
+    if (likedIndex === -1) {
+      return res.status(400).json({ success: false, message: 'Article has not been liked by this user' });
+    }
+
+    // Remove user ID from likedBy array and decrement likes count
+    article.likedBy.splice(likedIndex, 1);
+    article.likes = article.likes - 1;
+    await article.save();
+
     res.status(200).json({ success: true, data: article });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });

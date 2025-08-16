@@ -15,6 +15,9 @@ const ArticleCard = ({ article }) => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
+  // NEW: Determine if the article is liked by the current user
+  const isLiked = user && currentArticle?.likedBy?.includes(user._id);
+
   // If the article is already rejected, don't show it in the feed
   if (currentArticle.status === 'rejected') {
     return null;
@@ -23,7 +26,7 @@ const ArticleCard = ({ article }) => {
   const contentSnippet = currentArticle.content.substring(0, 150) + '...';
   const formattedDate = new Date(currentArticle.createdAt).toLocaleDateString();
 
-  // UPDATED: Now redirects to login if the user is not logged in
+  // UPDATED: handleLike now only works if the user hasn't liked the article
   const handleLike = async (e) => {
     e.stopPropagation();
     if (!user) {
@@ -31,19 +34,49 @@ const ArticleCard = ({ article }) => {
       navigate('/login');
       return;
     }
+    if (isLiked) {
+      toast.info('You have already liked this article.');
+      return;
+    }
     try {
       // Step 1: Call the API to update the like count on the backend
       await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/like`);
       
-      // Step 2: Manually update the likes count in the state
+      // Step 2: Manually update the likes count and likedBy array in the state
       setCurrentArticle(prevArticle => ({
         ...prevArticle,
-        likes: (prevArticle.likes || 0) + 1
+        likes: (prevArticle.likes || 0) + 1,
+        likedBy: [...(prevArticle.likedBy || []), user._id]
       }));
       
       toast.success('Article liked!');
     } catch (err) {
       toast.error('Failed to like article.');
+      console.error(err);
+    }
+  };
+
+  // NEW: handleUnlike function
+  const handleUnlike = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.info('Please log in to unlike this article.');
+      navigate('/login');
+      return;
+    }
+    try {
+      // This endpoint needs to be created on your backend
+      await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/unlike`);
+      
+      setCurrentArticle(prevArticle => ({
+        ...prevArticle,
+        likes: (prevArticle.likes || 1) - 1,
+        likedBy: prevArticle.likedBy.filter(id => id !== user._id)
+      }));
+      
+      toast.success('Article unliked!');
+    } catch (err) {
+      toast.error('Failed to unlike article.');
       console.error(err);
     }
   };
@@ -194,10 +227,14 @@ const ArticleCard = ({ article }) => {
             // Existing Like/Share buttons for other users/statuses
             <>
               <button
-                onClick={handleLike}
-                className="flex-1 py-2 text-sm font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition-colors"
+                // UPDATED: Use a conditional handler based on like status
+                onClick={isLiked ? handleUnlike : handleLike}
+                className={`flex-1 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${
+                  isLiked ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-500 hover:bg-indigo-600'
+                }`}
               >
-                Like
+                {/* UPDATED: Conditionally render Like or Unlike text */}
+                {isLiked ? 'Unlike' : 'Like'}
               </button>
               <button
                 onClick={handleShare}

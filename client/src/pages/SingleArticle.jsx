@@ -1,4 +1,4 @@
-// src/pages/SingleArticle.jsx (Corrected with Like/Share functionality)
+// src/pages/SingleArticle.jsx (Corrected with Like/Unlike functionality)
 
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
@@ -19,6 +19,9 @@ const SingleArticle = () => {
   const { t } = useTranslation();
   const { user } = useContext(UserContext);
 
+  // NEW: Determine if the article is liked by the current user
+  const isLiked = user && article?.likedBy?.includes(user._id);
+
   useEffect(() => {
     const fetchArticle = async () => {
       try {
@@ -30,6 +33,7 @@ const SingleArticle = () => {
           config.headers['x-auth-token'] = token;
         }
 
+        // IMPORTANT: Your API must now return the 'likedBy' array
         const res = await axios.get(`http://localhost:5001/api/articles/${articleId}`, config);
         setArticle(res.data);
       } catch (err) {
@@ -64,7 +68,7 @@ const SingleArticle = () => {
     }
   }, [articleId]);
 
-  // NEW: handleLike function
+  // UPDATED: handleLike now only works if the user hasn't liked the article
   const handleLike = async (e) => {
     e.stopPropagation();
     if (!user) {
@@ -72,15 +76,44 @@ const SingleArticle = () => {
       navigate('/login');
       return;
     }
+    if (isLiked) {
+      toast.info('You have already liked this article.');
+      return;
+    }
     try {
       await axios.patch(`http://localhost:5001/api/articles/${article._id}/like`);
       setArticle(prevArticle => ({
         ...prevArticle,
-        likes: (prevArticle.likes || 0) + 1
+        likes: (prevArticle.likes || 0) + 1,
+        likedBy: [...(prevArticle.likedBy || []), user._id] // NEW: Update the likedBy array
       }));
       toast.success('Article liked!');
     } catch (err) {
       toast.error('Failed to like article.');
+      console.error(err);
+    }
+  };
+
+  // NEW: handleUnlike function
+  const handleUnlike = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      // This case should not be reached with the new logic, but it's good practice to keep
+      toast.info('Please log in to unlike this article.');
+      navigate('/login');
+      return;
+    }
+    try {
+      // This endpoint needs to be created on your backend
+      await axios.patch(`http://localhost:5001/api/articles/${article._id}/unlike`);
+      setArticle(prevArticle => ({
+        ...prevArticle,
+        likes: (prevArticle.likes || 1) - 1,
+        likedBy: prevArticle.likedBy.filter(id => id !== user._id) // NEW: Remove user ID
+      }));
+      toast.success('Article unliked!');
+    } catch (err) {
+      toast.error('Failed to unlike article.');
       console.error(err);
     }
   };
@@ -156,19 +189,22 @@ const SingleArticle = () => {
         
         {/* NEW: Buttons for Like, Share, and Subscribe */}
         <div className="flex items-center space-x-2 mt-2 md:mt-0">
+          {/* UPDATED: Conditionally render Like or Unlike button */}
           <button
-            onClick={handleLike}
-            className="py-2 px-4 text-sm font-semibold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition-colors"
+            onClick={isLiked ? handleUnlike : handleLike}
+            className={`py-2 px-4 text-sm font-semibold text-white rounded-lg transition-colors ${
+              isLiked ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-500 hover:bg-indigo-600'
+            }`}
           >
-            Like
+            {isLiked ? 'Unlike' : 'Like'}
           </button>
+          
           <button
             onClick={handleShare}
             className="py-2 px-4 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
           >
             Share
           </button>
-          {/* UPDATED: Subscribe button no longer has the user check here */}
           {article.author && user?._id !== article.author._id && article.author.role !== 'Admin' && (
             <SubscribeButton publisherId={article.author._id} />
           )}
@@ -218,7 +254,6 @@ const SingleArticle = () => {
             <span>{article.views || 0}</span>
             <span>Views</span>
         </div>
-        {/* CORRECTED: Removed duplicate 'Likes' display */}
         <div className="flex items-center space-x-2">
             <span>{article.likes || 0}</span>
             <span>Likes</span>
