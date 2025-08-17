@@ -1,4 +1,4 @@
-// client/src/pages/FullAdminDashboard.jsx (Styled Version)
+// client/src/pages/FullAdminDashboard.jsx (Corrected Version)
 
 import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +20,8 @@ const FullAdminDashboard = () => {
   const fetchAllArticles = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5001/api/articles/admin/all', {
+      // CORRECTED: The backend's /api/articles route returns all articles for an Admin user.
+      const response = await axios.get('http://localhost:5001/api/articles', {
         headers: { 'x-auth-token': token }
       });
       setAllArticles(response.data.data);

@@ -1,4 +1,4 @@
-// src/pages/SingleArticle.jsx (Corrected with Like/Unlike functionality)
+// src/pages/SingleArticle.jsx (Corrected with Comments Section)
 
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { FaArrowLeft } from 'react-icons/fa';
 import { UserContext } from '../context/UserContext';
 import SubscribeButton from '../components/SubscribeButton';
+// NEW: Import the CommentSection component
+import CommentSection from '../components/CommentSection';
 
 const SingleArticle = () => {
   const { articleId } = useParams();
@@ -33,7 +35,6 @@ const SingleArticle = () => {
           config.headers['x-auth-token'] = token;
         }
 
-        // IMPORTANT: Your API must now return the 'likedBy' array
         const res = await axios.get(`http://localhost:5001/api/articles/${articleId}`, config);
         setArticle(res.data);
       } catch (err) {
@@ -263,6 +264,12 @@ const SingleArticle = () => {
             <span>Shares</span>
         </div>
       </div>
+      
+      {/* NEW: Add the CommentSection component here */}
+      <div className="mt-12">
+        <CommentSection articleId={articleId} articleAuthorId={article.author._id} />
+      </div>
+
     </div>
   );
 };

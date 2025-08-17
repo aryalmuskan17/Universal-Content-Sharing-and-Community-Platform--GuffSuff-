@@ -1,5 +1,3 @@
-// client/src/pages/CreateArticle.jsx (Styled Version)
-
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -87,7 +85,9 @@ const CreateArticle = () => {
     <div className="flex justify-center items-center p-4">
       <div className="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg">
         <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">{t('createArticle')}</h1>
-
+        {/* ADDED FOR TESTING */}
+        <h2 style={{ color: 'red', fontSize: '2em' }}>TEST MESSAGE - IS THIS VISIBLE?</h2>
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">

@@ -1,12 +1,16 @@
+// server/models/Notification.js (Final Corrected Version)
+
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
+  // The user who receives the notification (e.g., the publisher)
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
-  publisher: {
+  // The user who caused the event (e.g., the person who liked or commented)
+  fromUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
@@ -14,6 +18,12 @@ const notificationSchema = new mongoose.Schema({
   article: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Article',
+    required: true,
+  },
+  // CORRECTED: The type of notification (e.g., like, share, comment, publish)
+  type: {
+    type: String,
+    enum: ['like', 'share', 'comment', 'subscribe', 'publish'],
     required: true,
   },
   message: {

@@ -1,4 +1,4 @@
-// client/src/components/ArticleCard.jsx (Final Corrected Version)
+// client/src/components/ArticleCard.jsx (Final Corrected Version with Comment Count)
 
 import React, { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -132,6 +132,12 @@ const ArticleCard = ({ article }) => {
 
   const handleApprove = (e) => handleStatusChange(e, 'published');
   const handleReject = (e) => handleStatusChange(e, 'rejected');
+  
+  // NEW: Added a handleCommentClick function
+  const handleCommentClick = (e) => {
+    e.stopPropagation();
+    navigate(`/article/${currentArticle._id}`);
+  };
 
   return (
     <div 
@@ -201,6 +207,13 @@ const ArticleCard = ({ article }) => {
             <span className="font-semibold">{currentArticle.shares || 0}</span>
             <span>Shares</span>
           </div>
+          
+          {/* NEW: Display comment count */}
+          <div className="flex items-center space-x-1">
+            <span className="font-semibold">{currentArticle.commentCount || 0}</span>
+            <span>Comments</span>
+          </div>
+          
           <div className="ml-auto text-sm text-gray-400">
             {formattedDate}
           </div>
@@ -227,13 +240,11 @@ const ArticleCard = ({ article }) => {
             // Existing Like/Share buttons for other users/statuses
             <>
               <button
-                // UPDATED: Use a conditional handler based on like status
                 onClick={isLiked ? handleUnlike : handleLike}
                 className={`flex-1 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${
                   isLiked ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-500 hover:bg-indigo-600'
                 }`}
               >
-                {/* UPDATED: Conditionally render Like or Unlike text */}
                 {isLiked ? 'Unlike' : 'Like'}
               </button>
               <button
@@ -241,6 +252,14 @@ const ArticleCard = ({ article }) => {
                 className="flex-1 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
               >
                 Share
+              </button>
+              
+              {/* NEW: Add the Comment button */}
+              <button
+                onClick={handleCommentClick}
+                className="flex-1 py-2 text-sm font-semibold text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Comment
               </button>
             </>
           )}

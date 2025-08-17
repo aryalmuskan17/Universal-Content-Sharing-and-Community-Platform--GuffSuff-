@@ -11,13 +11,14 @@ const Notification = require('../models/Notification');
 router.get('/', auth(), async (req, res) => {
   try {
     const notifications = await Notification.find({ user: req.user.id })
-      // CORRECTED: Populate both 'name' and 'username'
-      .populate('publisher', 'name username') 
+      // CORRECTED: Populate 'fromUser' instead of 'publisher'
+      .populate('fromUser', 'name username') 
       .populate('article', 'title') 
       .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, count: notifications.length, data: notifications });
   } catch (err) {
+    console.error('An error occurred getting notifications:', err);
     res.status(500).json({ success: false, error: 'Server Error' });
   }
 });
@@ -39,6 +40,7 @@ router.patch('/:id/read', auth(), async (req, res) => {
 
     res.status(200).json({ success: true, data: notification });
   } catch (err) {
+    console.error('An error occurred marking notification as read:', err);
     res.status(500).json({ success: false, error: 'Server Error' });
   }
 });

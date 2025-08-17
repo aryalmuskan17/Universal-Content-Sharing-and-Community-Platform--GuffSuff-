@@ -12,6 +12,8 @@ const authRoutes = require('./routes/auth');
 const articleRoutes = require('./routes/article');
 const analyticsRoutes = require('./routes/analytics');
 const notificationRoutes = require('./routes/notification'); 
+// NEW: Import the comment routes
+const commentRoutes = require('./routes/comment'); 
 
 const app = express();
 
@@ -29,7 +31,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// --- ADD THE NEW LINE HERE ---
 // Serve static files from the 'uploads' directory
 app.use('/uploads', express.static('uploads'));
 
@@ -39,6 +40,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes); 
+// NEW: Use the comment routes
+app.use('/api/comments', commentRoutes); 
 
 // 6. Start the server.
 const PORT = process.env.PORT || 4000;

@@ -1,9 +1,10 @@
-// client/src/components/NotificationBell.jsx (Styled Version)
+// client/src/components/NotificationBell.jsx
 
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { FaBell } from 'react-icons/fa'; // Make sure you have react-icons installed
+import { FaBell } from 'react-icons/fa';
+import { Link } from 'react-router-dom'; // Import Link from react-router-dom
 
 const NotificationBell = () => {
   const { t } = useTranslation();
@@ -100,9 +101,21 @@ const NotificationBell = () => {
             ) : (
               notifications.map(n => (
                 <li key={n._id} className={`p-4 transition-colors ${n.isRead ? 'bg-gray-50' : 'bg-white'}`}>
-                  <p className={`text-sm ${n.isRead ? 'text-gray-500' : 'text-gray-800 font-medium'}`}>
-                    <strong>{n.publisher?.username || 'System'}</strong> {t('hasPublishedNewArticle')} <strong>{n.article?.title || t('untitled')}</strong>
-                  </p>
+                  <Link 
+                    to={n.article ? `/articles/${n.article}` : '#'}
+                    onClick={() => {
+                      if (!n.isRead) markAsRead(n._id);
+                      setIsDropdownOpen(false);
+                    }}
+                    className="block"
+                  >
+                    <p className={`text-sm ${n.isRead ? 'text-gray-500' : 'text-gray-800 font-medium'}`}>
+                      {n.message}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {new Date(n.createdAt).toLocaleTimeString()}
+                    </p>
+                  </Link>
                   {!n.isRead && (
                     <button 
                       onClick={(e) => { e.stopPropagation(); markAsRead(n._id); }}

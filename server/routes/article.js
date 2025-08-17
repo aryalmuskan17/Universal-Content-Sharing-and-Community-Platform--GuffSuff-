@@ -1,8 +1,7 @@
-// server/routes/article.js (Corrected for Like/Unlike functionality)
-
 const express = require('express');
 const router = express.Router();
 const Article = require('../models/Article');
+const Comment = require('../models/Comment'); 
 const auth = require('../middleware/auth');
 const User = require('../models/User'); 
 const Notification = require('../models/Notification');
@@ -19,6 +18,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// CORRECTED POST /api/articles ROUTE
 // @desc    Create a new article
 // @route   POST /api/articles
 // @access  Private (Publisher, Admin)
@@ -48,7 +48,8 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
           const message = `${publisher.name || publisher.username} has published a new article: "${article.title}"`;
           return Notification.create({
             user: subscriber._id,
-            publisher: publisher._id,
+            fromUser: publisher._id, 
+            type: 'publish', 
             article: article._id,
             message,
           });
@@ -58,31 +59,32 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
 
     res.status(201).json({ success: true, data: article });
   } catch (err) {
+    console.error('An error occurred creating a new article:', err);
     res.status(400).json({ success: false, error: err.message });
   }
 });
 
+// CORRECTED GET /api/articles ROUTE - Now with Comment Count and Correct Data Structure
 // @desc    Get all articles for all roles with filtering, searching, and sorting
 // @route   GET /api/articles
 // @access  Public
-// UPDATED: Now populates the likedBy array
 router.get('/', async (req, res) => {
   try {
-    let query = { status: 'published' };
+    let matchQuery = { status: 'published' };
     const sort = {};
 
     if (req.user?.role === 'Admin') {
-      query = {};
+      matchQuery = {};
     } else if (req.user?.role === 'Publisher') {
-      query = { author: req.user.id };
+      matchQuery = { author: req.user.id };
     }
 
     if (req.query.category) {
-      query.category = req.query.category;
+      matchQuery.category = req.query.category;
     }
 
     if (req.query.q) {
-      query.$or = [
+      matchQuery.$or = [
         { title: { $regex: req.query.q, $options: 'i' } },
         { content: { $regex: req.query.q, $options: 'i' } },
       ];
@@ -97,25 +99,78 @@ router.get('/', async (req, res) => {
     } else {
         sort.createdAt = -1;
     }
-    
-    // UPDATED: Add .populate('likedBy') to retrieve the likedBy array
-    const articles = await Article.find(query).populate('author').sort(sort).select('+mediaUrl');
+
+    const articles = await Article.aggregate([
+      // Stage 1: Filter articles based on the query
+      { $match: matchQuery },
+      // Stage 2: Look up the author from the users collection
+      {
+        $lookup: {
+          from: 'users', 
+          localField: 'author',
+          foreignField: '_id',
+          as: 'authorDetails'
+        }
+      },
+      // Stage 3: Look up comments for each article from the comments collection
+      {
+        $lookup: {
+          from: 'comments',
+          localField: '_id',
+          foreignField: 'article',
+          as: 'comments'
+        }
+      },
+      // Stage 4: Add a new field 'commentCount'
+      {
+        $addFields: {
+          commentCount: { $size: '$comments' }
+        }
+      },
+      // Stage 5: Sort the articles
+      { $sort: sort },
+      // Stage 6: Project the final document shape
+      {
+        $project: {
+          _id: '$_id', 
+          title: '$title',
+          content: '$content',
+          author: { $arrayElemAt: ['$authorDetails', 0] },
+          status: '$status',
+          tags: '$tags',
+          category: '$category',
+          language: '$language',
+          views: '$views',
+          likes: '$likes',
+          likedBy: '$likedBy',
+          shares: '$shares',
+          createdAt: '$createdAt',
+          updatedAt: '$updatedAt',
+          mediaUrl: '$mediaUrl',
+          commentCount: '$commentCount',
+        }
+      }
+    ]);
+
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
+    console.error('An error occurred getting articles with comments:', err);
     res.status(500).json({ success: false, error: 'Server Error' });
   }
 });
 
-
 // @desc    Get all pending articles for Admin review
 // @route   GET /api/articles/pending
 // @access  Private (Admin only)
-// UPDATED: Now populates the likedBy array
 router.get('/pending', auth(['Admin']), async (req, res) => {
   try {
-    const articles = await Article.find({ status: 'pending' }).populate('author').select('+mediaUrl');
+    const articles = await Article.find({ status: 'pending' })
+      .populate('author')
+      .select('+mediaUrl');
+      
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
+    console.error('An error occurred getting pending articles:', err);
     res.status(500).json({ success: false, error: 'Server Error' });
   }
 });
@@ -123,16 +178,18 @@ router.get('/pending', auth(['Admin']), async (req, res) => {
 // @desc    Get a single article by ID
 // @route   GET /api/articles/:id
 // @access  Public
-// UPDATED: Now populates the likedBy array
 router.get('/:id', async (req, res) => {
   try {
-    // IMPORTANT: Make sure your article model has `likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]`
-    const article = await Article.findById(req.params.id).populate('author').select('+mediaUrl');
+    const article = await Article.findById(req.params.id)
+      .populate('author')
+      .select('+mediaUrl');
+      
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
     res.status(200).json(article);
   } catch (error) {
+    console.error('An error occurred getting a single article:', error);
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
@@ -159,78 +216,118 @@ router.patch('/:id/view', auth(), async (req, res) => {
         }
         res.status(200).json({ success: true, data: article });
     } catch (err) {
+        console.error('An error occurred in the view route:', err);
         res.status(400).json({ success: false, error: err.message });
     }
 });
 
-// UPDATED: @desc    Like an article
+// FIXED: @desc    Like an article and create a notification
 // @route   PATCH /api/articles/:id/like
 // @access  Private (Authenticated User)
 router.patch('/:id/like', auth(), async (req, res) => {
   try {
-    const article = await Article.findById(req.params.id);
-    if (!article) {
+    const articleToUpdate = await Article.findById(req.params.id);
+    if (!articleToUpdate) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
 
-    // Check if the user has already liked the article
-    if (article.likedBy.includes(req.user.id)) {
+    if (articleToUpdate.likedBy.includes(req.user.id)) {
       return res.status(400).json({ success: false, message: 'Article already liked' });
     }
+    
+    const updatedArticle = await Article.findByIdAndUpdate(
+      req.params.id,
+      {
+        $inc: { likes: 1 },
+        $addToSet: { likedBy: req.user.id }
+      },
+      { new: true, runValidators: true }
+    );
 
-    // Add user ID to likedBy array and increment likes count
-    article.likedBy.push(req.user.id);
-    article.likes = article.likes + 1;
-    await article.save();
+    if (req.user.id.toString() !== articleToUpdate.author.toString()) {
+      const liker = await User.findById(req.user.id);
+      const publisher = await User.findById(articleToUpdate.author);
+      if (publisher) {
+        await Notification.create({
+          user: publisher._id,
+          fromUser: liker._id,
+          article: updatedArticle._id,
+          type: 'like',
+          message: `${liker.username} liked your article: "${updatedArticle.title}"`,
+        });
+      }
+    }
 
-    res.status(200).json({ success: true, data: article });
+    res.status(200).json({ success: true, data: updatedArticle });
   } catch (err) {
+    console.error('An error occurred in the like route:', err);
     res.status(400).json({ success: false, error: err.message });
   }
 });
 
-// NEW: @desc    Unlike an article
+// FIXED: @desc    Unlike an article
 // @route   PATCH /api/articles/:id/unlike
 // @access  Private (Authenticated User)
 router.patch('/:id/unlike', auth(), async (req, res) => {
   try {
-    const article = await Article.findById(req.params.id);
-    if (!article) {
+    const articleToUpdate = await Article.findById(req.params.id);
+    if (!articleToUpdate) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
 
-    // Check if the user has liked the article to unlike it
-    const likedIndex = article.likedBy.indexOf(req.user.id);
-    if (likedIndex === -1) {
+    if (!articleToUpdate.likedBy.includes(req.user.id)) {
       return res.status(400).json({ success: false, message: 'Article has not been liked by this user' });
     }
 
-    // Remove user ID from likedBy array and decrement likes count
-    article.likedBy.splice(likedIndex, 1);
-    article.likes = article.likes - 1;
-    await article.save();
+    const updatedArticle = await Article.findByIdAndUpdate(
+      req.params.id,
+      {
+        $inc: { likes: -1 },
+        $pull: { likedBy: req.user.id }
+      },
+      { new: true, runValidators: true }
+    );
 
-    res.status(200).json({ success: true, data: article });
+    res.status(200).json({ success: true, data: updatedArticle });
   } catch (err) {
+    console.error('An error occurred in the unlike route:', err);
     res.status(400).json({ success: false, error: err.message });
   }
 });
 
-// @desc    Increment the shares count for an article
+// UPDATED: @desc    Increment the shares count for an article and create a notification
 // @route   PATCH /api/articles/:id/share
-// @access  Public
-router.patch('/:id/share', async (req, res) => {
+// @access  Private (Authenticated User)
+router.patch('/:id/share', auth(), async (req, res) => {
   try {
     const article = await Article.findByIdAndUpdate(
       req.params.id,
       { $inc: { shares: 1 } },
       { new: true, runValidators: true }
     ).select('+mediaUrl');
+    
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
+    
+    // NEW: Create a notification for the publisher
+    if (req.user.id.toString() !== article.author.toString()) {
+      const sharer = await User.findById(req.user.id);
+      const publisher = await User.findById(article.author);
+      if (publisher) {
+        await Notification.create({
+          user: publisher._id, // The publisher is the recipient
+          fromUser: sharer._id, // The sharer is the sender
+          article: article._id,
+          type: 'share',
+          message: `${sharer.username} shared your article: "${article.title}"`,
+        });
+      }
+    }
+
     res.status(200).json({ success: true, data: article });
   } catch (err) {
+    console.error('An error occurred in the share route:', err);
     res.status(400).json({ success: false, error: err.message });
   }
 });
@@ -238,12 +335,12 @@ router.patch('/:id/share', async (req, res) => {
 // @desc    Get performance analytics for a publisher's articles
 // @route   GET /api/articles/publisher/analytics
 // @access  Private (Publisher, Admin)
-// Note: This route is no longer necessary if you use the universal route
 router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
     const articles = await Article.find({ author: req.user.id }).select('+mediaUrl');
     res.status(200).json({ success: true, data: articles });
   } catch (err) {
+    console.error('An error occurred in the publisher analytics route:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -271,6 +368,7 @@ router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
 
     res.status(200).json({ success: true, data: updatedArticle });
   } catch (err) {
+    console.error('An error occurred in the update route:', err);
     res.status(400).json({ success: false, error: err.message });
   }
 });
@@ -293,6 +391,7 @@ router.patch('/:id/status', auth(['Admin']), async (req, res) => {
 
     res.status(200).json({ success: true, data: article });
   } catch (err) {
+    console.error('An error occurred in the status update route:', err);
     res.status(400).json({ success: false, error: err.message });
   }
 });

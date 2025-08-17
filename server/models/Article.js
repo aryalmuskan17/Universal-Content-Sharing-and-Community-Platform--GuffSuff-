@@ -1,4 +1,4 @@
-// server/models/Article.js (Final Corrected Version)
+// server/models/Article.js (Updated with Comment Count Virtual)
 
 const mongoose = require('mongoose');
 
@@ -10,9 +10,8 @@ const ArticleSchema = new mongoose.Schema({
   category: String,
   status: { type: String, enum: ['pending', 'approved', 'rejected', 'published'], default: 'pending' },
   language: { type: String, enum: ['en', 'ne'], default: 'en' },
-  mediaUrl: String, // for images/videos
+  mediaUrl: String, 
   
-  // --- NEW ANALYTICS FIELDS ---
   views: {
     type: Number,
     default: 0
@@ -25,14 +24,24 @@ const ArticleSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  // NEW: Array to store the IDs of users who have liked this article
   likedBy: [
     { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   ],
   
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+}, {
+  // NEW: This is required to make virtuals appear when converted to JSON
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-// This line prevents the "OverwriteModelError" if the model is required multiple times.
+// NEW: Create a virtual field to count comments
+ArticleSchema.virtual('commentCount', {
+  ref: 'Comment', // The model to use
+  localField: '_id', // Find documents where `localField` is equal to `foreignField`
+  foreignField: 'article', // In the `Comment` model, find where `article` matches the article's `_id`
+  count: true // This option makes it count the documents instead of populating them
+});
+
 module.exports = mongoose.models.Article || mongoose.model('Article', ArticleSchema);
