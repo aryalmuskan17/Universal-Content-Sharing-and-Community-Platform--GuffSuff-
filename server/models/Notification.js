@@ -1,5 +1,3 @@
-// server/models/Notification.js (Final Corrected Version)
-
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
@@ -23,7 +21,8 @@ const notificationSchema = new mongoose.Schema({
   // CORRECTED: The type of notification (e.g., like, share, comment, publish)
   type: {
     type: String,
-    enum: ['like', 'share', 'comment', 'subscribe', 'publish'],
+    // Add 'review' to the list of valid enum values
+    enum: ['like', 'share', 'comment', 'subscribe', 'publish', 'review'], 
     required: true,
   },
   message: {

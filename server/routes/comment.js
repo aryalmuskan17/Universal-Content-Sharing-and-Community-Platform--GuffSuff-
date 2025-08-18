@@ -5,6 +5,8 @@ const router = express.Router();
 const Comment = require('../models/Comment');
 const Article = require('../models/Article');
 const auth = require('../middleware/auth');
+const Notification = require('../models/Notification'); // NEW: Import Notification model
+const User = require('../models/User'); // NEW: Import User model to get commenter's name
 
 // @desc    Create a new comment on an article
 // @route   POST /api/comments/:articleId
@@ -24,6 +26,41 @@ router.post('/:articleId', auth(), async (req, res) => {
       user: req.user.id,
       content,
     });
+    
+    // START DEBUGGING
+    console.log('New comment created. Checking for notification logic...');
+    console.log('Commenter ID:', req.user.id);
+    console.log('Article Author ID:', article.author.toString());
+    
+    // Check if the commenter is not the article's author
+    if (req.user.id.toString() !== article.author.toString()) {
+      console.log('Condition met: Commenter is not the author. Attempting to send notification...');
+      const publisher = await User.findById(article.author);
+      const commenter = await User.findById(req.user.id);
+      
+      console.log('Publisher found:', !!publisher);
+      console.log('Commenter found:', !!commenter);
+
+      if (publisher && commenter) {
+        try {
+          await Notification.create({
+            user: publisher._id,
+            fromUser: commenter._id,
+            article: article._id,
+            type: 'comment',
+            message: `${commenter.username} commented on your article: "${article.title}"`,
+          });
+          console.log('SUCCESS: Notification created successfully!');
+        } catch (notificationErr) {
+          console.error('ERROR: Failed to create notification:', notificationErr);
+        }
+      } else {
+        console.log('WARNING: Could not find publisher or commenter user for notification.');
+      }
+    } else {
+      console.log('Condition not met: Commenter is the same as the article author. No notification will be sent.');
+    }
+    // END DEBUGGING
 
     res.status(201).json(newComment);
   } catch (error) {
@@ -38,7 +75,7 @@ router.post('/:articleId', auth(), async (req, res) => {
 router.get('/:articleId', async (req, res) => {
   try {
     const comments = await Comment.find({ article: req.params.articleId })
-      .populate('user', 'username name avatar') // Populate user details
+      .populate('user', 'username name avatar')
       .sort({ createdAt: -1 });
 
     res.status(200).json(comments);

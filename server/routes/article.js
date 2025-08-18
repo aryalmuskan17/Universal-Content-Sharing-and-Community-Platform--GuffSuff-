@@ -18,22 +18,28 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// CORRECTED POST /api/articles ROUTE
+// FINAL CORRECTED POST /api/articles ROUTE
 // @desc    Create a new article
 // @route   POST /api/articles
 // @access  Private (Publisher, Admin)
 router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (req, res) => {
   try {
-    const { title, content, status, tags, category, language } = req.body;
+    const { title, content, tags, category, language } = req.body;
     let articleData = {
       title,
       content,
       author: req.user.id,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
       category,
-      status,
       language,
     };
+    
+    // Set status based on user role
+    if (req.user.role === 'Publisher') {
+      articleData.status = 'pending';
+    } else { 
+      articleData.status = req.body.status || 'draft';
+    }
 
     if (req.file) { 
       articleData.mediaUrl = req.file.path;
@@ -56,7 +62,28 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
         });
         await Promise.all(notificationPromises);
     }
-
+    
+    // Admin notification logic
+    if (articleData.status === 'pending') {
+        const fromUser = await User.findById(req.user.id);
+        if (!fromUser) {
+            console.error('User not found for notification:', req.user.id);
+            return res.status(500).json({ success: false, error: 'User not found' });
+        }
+        
+        const admins = await User.find({ role: 'Admin' });
+        const adminNotificationPromises = admins.map(admin => {
+            return Notification.create({
+                user: admin._id,
+                fromUser: fromUser._id, 
+                article: article._id,
+                type: 'review',
+                message: `${fromUser.name || fromUser.username} has submitted a new article for review: "${article.title}"`,
+            });
+        });
+        await Promise.all(adminNotificationPromises);
+    }
+    
     res.status(201).json({ success: true, data: article });
   } catch (err) {
     console.error('An error occurred creating a new article:', err);
@@ -171,7 +198,7 @@ router.get('/pending', auth(['Admin']), async (req, res) => {
     res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (err) {
     console.error('An error occurred getting pending articles:', err);
-    res.status(500).json({ success: false, error: 'Server Error' });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -373,7 +400,7 @@ router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
   }
 });
 
-// @desc    Admin approves or rejects an article
+// FINAL CORRECTED: @desc Admin approves or rejects an article
 // @route   PATCH /api/articles/:id/status
 // @access  Private (Admin only)
 router.patch('/:id/status', auth(['Admin']), async (req, res) => {
@@ -387,6 +414,21 @@ router.patch('/:id/status', auth(['Admin']), async (req, res) => {
 
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+
+    // NEW LOGIC: Notify the publisher if the article is approved
+    if (status === 'published') {
+      const publisher = await User.findById(article.author);
+      const admin = await User.findById(req.user.id); // Fetch admin details for the message
+      if (publisher && admin) {
+        await Notification.create({
+          user: publisher._id,
+          fromUser: admin._id,
+          article: article._id,
+          type: 'publish',
+          message: `Your article "${article.title}" has been approved and published by an admin.`,
+        });
+      }
     }
 
     res.status(200).json({ success: true, data: article });
