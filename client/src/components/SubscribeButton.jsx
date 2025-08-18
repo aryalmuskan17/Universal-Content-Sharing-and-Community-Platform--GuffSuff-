@@ -1,18 +1,19 @@
-// src/components/SubscribeButton.jsx (Updated for Public Interaction)
+// src/components/SubscribeButton.jsx (Updated for Public Interaction and Dark Mode)
 
 import React, { useContext } from 'react';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
+import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom'; // NEW: Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const SubscribeButton = ({ publisherId }) => {
   const { t } = useTranslation();
   const { user, token, updateUserContext } = useContext(UserContext);
-  const navigate = useNavigate(); // NEW: Initialize useNavigate
+  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
+  const navigate = useNavigate();
 
-  // UPDATED: Now only hide the button if it's the publisher themselves or not a reader
   if (user && (user.role !== 'Reader' || user._id === publisherId)) {
     return null;
   }
@@ -51,7 +52,6 @@ const SubscribeButton = ({ publisherId }) => {
     }
   };
 
-  // NEW: A common handler to check for user authentication before proceeding
   const handleClick = (e) => {
     e.stopPropagation();
     if (!user) {
@@ -59,7 +59,6 @@ const SubscribeButton = ({ publisherId }) => {
       navigate('/login');
       return;
     }
-    // If the user is logged in, call the appropriate handler
     if (isSubscribed) {
       handleUnsubscribe(e);
     } else {
@@ -69,14 +68,14 @@ const SubscribeButton = ({ publisherId }) => {
 
   return (
     <button
-      // UPDATED: Use the new handleClick handler
       onClick={handleClick}
       className={`
         py-2 px-4 rounded-full font-medium text-sm transition-colors duration-200
         focus:outline-none focus:ring-2 focus:ring-offset-2
         ${
           isSubscribed
-            ? 'bg-transparent border border-gray-400 text-gray-600 hover:bg-gray-100 focus:ring-gray-300'
+            // CHANGE: Add dark mode styles to the subscribed state
+            ? 'bg-transparent border border-gray-400 text-gray-600 hover:bg-gray-100 focus:ring-gray-300 dark:border-gray-500 dark:text-gray-300 dark:hover:bg-gray-800 dark:focus:ring-gray-600'
             : 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500'
         }
       `}

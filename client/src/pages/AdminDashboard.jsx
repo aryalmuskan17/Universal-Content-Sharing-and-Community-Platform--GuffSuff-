@@ -1,16 +1,18 @@
-// client/src/pages/AdminDashboard.jsx (Styled Version)
+// client/src/pages/AdminDashboard.jsx (Styled Version with Dark Mode)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next'; 
 import { toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
+import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const [pendingArticles, setPendingArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
 
   const token = localStorage.getItem('token');
 
@@ -63,22 +65,27 @@ const AdminDashboard = () => {
   const handleReject = (articleId) => handleStatusUpdate(articleId, 'rejected');
 
   if (loading) {
-    return <div className="text-center p-8 text-xl font-medium text-gray-600">{t('loadingPendingArticles')}</div>;
+    // CHANGE: Add dark mode text color
+    return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingPendingArticles')}</div>;
   }
   if (error) {
+    // CHANGE: No dark mode needed for red text
     return <div className="text-center p-8 text-red-500 font-medium">{error}</div>;
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg my-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">{t('adminDashboard')} - {t('pendingArticles')}</h1>
+    // CHANGE: Add dark mode classes to the main container
+    <div className="bg-white p-6 rounded-xl shadow-lg my-8 dark:bg-gray-900 transition-colors duration-300">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6 dark:text-gray-100">{t('adminDashboard')} - {t('pendingArticles')}</h1>
       
       {pendingArticles.length === 0 ? (
-        <div className="text-center text-gray-500 p-4">{t('noPendingArticles')}</div>
+        // CHANGE: Add dark mode text color
+        <div className="text-center text-gray-500 p-4 dark:text-gray-400">{t('noPendingArticles')}</div>
       ) : (
         <div className="space-y-6">
           {pendingArticles.map(article => (
-            <div key={article._id} className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
+            // CHANGE: Add dark mode classes to the article cards
+            <div key={article._id} className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               
               {/* Conditional thumbnail display */}
               {article.mediaUrl && (
@@ -100,14 +107,14 @@ const AdminDashboard = () => {
               )}
               
               <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-800">{article.title}</h2>
-                <p className="text-gray-600 mt-2 line-clamp-3">{article.content}</p>
-                <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{article.title}</h2>
+                <p className="text-gray-600 mt-2 line-clamp-3 dark:text-gray-300">{article.content}</p>
+                <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
                   <span>
-                    <span className="font-semibold text-gray-700">{t('author')}:</span> {article.author.username}
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">{t('author')}:</span> {article.author.username}
                   </span>
                   <span>
-                    <span className="font-semibold text-gray-700">{t('category')}:</span> {article.category}
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">{t('category')}:</span> {article.category}
                   </span>
                 </div>
                 <div className="mt-6 flex space-x-4">

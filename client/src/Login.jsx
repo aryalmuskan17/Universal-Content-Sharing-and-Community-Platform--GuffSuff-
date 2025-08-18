@@ -1,8 +1,9 @@
-// client/src/pages/Login.jsx (Final Corrected Version)
+// client/src/Login.jsx (Final Corrected Version with Corrected Path and Dark Mode)
 
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { UserContext } from './context/UserContext';
+import { UserContext } from './context/UserContext'; // CHANGE: Corrected import path
+import { ThemeContext } from './context/ThemeContext'; // CHANGE: Corrected import path
 import { toast } from 'react-toastify';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +13,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useContext(UserContext);
+  const { isDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -39,29 +41,29 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">{t('login')}</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 dark:bg-gray-800 transition-colors duration-300">
+      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg dark:bg-gray-900 dark:shadow-none">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6 dark:text-gray-100">{t('login')}</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('username')}</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('username')}</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
-              autoComplete="username" // <-- Added this line
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              autoComplete="username"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('password')}</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('password')}</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               autoComplete="current-password"
             />
           </div>
@@ -72,7 +74,7 @@ const Login = () => {
             {t('login')}
           </button>
         </form>
-        <div className="mt-6 text-center text-gray-600">
+        <div className="mt-6 text-center text-gray-600 dark:text-gray-400">
           {t('noAccount')}
           <Link to="/register" className="text-indigo-600 hover:underline ml-1">
             {t('registerHere')}

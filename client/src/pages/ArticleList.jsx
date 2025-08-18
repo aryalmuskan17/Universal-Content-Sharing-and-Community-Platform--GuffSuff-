@@ -1,4 +1,4 @@
-// client/src/pages/ArticleList.jsx (Final Version)
+// client/src/pages/ArticleList.jsx (Final Version with Dark Mode)
 
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
@@ -8,10 +8,12 @@ import ArticleCard from '../components/ArticleCard';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 
 const ArticleList = () => {
   const { t } = useTranslation();
   const { user } = useContext(UserContext);
+  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Get isDarkMode state
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,7 +21,6 @@ const ArticleList = () => {
   const [searchTerm, setSearchTerm] = useState(''); 
   const navigate = useNavigate();
 
-  // NEW: State for sorting, 'date' is the default
   const [sortBy, setSortBy] = useState('date'); 
 
   useEffect(() => {
@@ -29,10 +30,8 @@ const ArticleList = () => {
         setError('');
         try {
           const token = localStorage.getItem('token');
-          // The backend now handles role-based fetching and sorting from this single endpoint
           let apiUrl = 'http://localhost:5001/api/articles';
   
-          // NEW: Add sortBy to the combined filters
           const combinedFilters = { ...filters, q: searchTerm, sortBy };
           
           const config = {
@@ -55,7 +54,6 @@ const ArticleList = () => {
 
     }, 500);
 
-    // NEW: Add sortBy to the dependency array
     return () => clearTimeout(delayDebounceFn);
   }, [filters, t, user, searchTerm, sortBy]);
 
@@ -71,12 +69,12 @@ const ArticleList = () => {
     navigate(`/article/${articleId}`);
   };
 
-  if (loading) return <div className="text-center p-8 text-xl font-medium text-gray-600">{t('loadingArticles')}</div>;
+  if (loading) return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingArticles')}</div>;
   if (error) return <div className="text-center p-8 text-xl font-medium text-red-500">{error}</div>;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h1 className="text-4xl font-bold text-gray-800 mb-6">{t('latestArticles')}</h1>
+    <div className="bg-white p-6 rounded-lg shadow-md dark:bg-black dark:text-gray-100 transition-colors duration-300">
+      <h1 className="text-4xl font-bold text-gray-800 mb-6 dark:text-gray-100">{t('latestArticles')}</h1>
       
       <div className="flex flex-col md:flex-row items-center justify-between mb-8 space-y-4 md:space-y-0 md:space-x-4">
         <input 
@@ -84,24 +82,28 @@ const ArticleList = () => {
           placeholder={t('searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-1/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+          // CHANGE: Add dark mode styles to the input
+          className="w-full md:w-1/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
         />
         <div className="flex flex-wrap space-x-2">
           <button 
             onClick={() => handleFilterChange({ category: 'Sports' })} 
-            className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300"
+            // CHANGE: Add dark mode styles to the button
+            className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
           >
             {t('sports')}
           </button>
           <button 
             onClick={() => handleFilterChange({ category: 'Technology' })} 
-            className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300"
+            // CHANGE: Add dark mode styles to the button
+            className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
           >
             {t('technology')}
           </button>
           <button 
             onClick={() => handleFilterChange({ category: '' })} 
-            className="py-2 px-4 rounded-lg font-medium text-sm transition-colors text-gray-600 hover:bg-gray-200"
+            // CHANGE: Add dark mode styles to the button
+            className="py-2 px-4 rounded-lg font-medium text-sm transition-colors text-gray-600 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
           >
             {t('all')}
           </button>
@@ -110,12 +112,13 @@ const ArticleList = () => {
       
       {/* NEW: Sorting Dropdown */}
       <div className="flex justify-end mb-6">
-        <label htmlFor="sort-by" className="mr-2 text-sm font-medium text-gray-700">{t('sortBy')}</label>
+        <label htmlFor="sort-by" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">{t('sortBy')}</label>
         <select 
           id="sort-by"
           value={sortBy} 
           onChange={(e) => setSortBy(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          // CHANGE: Add dark mode styles to the select dropdown
+          className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
         >
           <option value="date">{t('newestFirst')}</option>
           <option value="views">{t('mostViewed')}</option>
@@ -126,6 +129,7 @@ const ArticleList = () => {
         {articles.length > 0 ? (
           articles.map((article) => (
             <div key={article._id} className="relative">
+              {/* Note: The ArticleCard component itself will also need dark mode styling */}
               <ArticleCard article={article} onViewArticleClick={onViewArticleClick} />
               {user && article.author && user._id === article.author._id && (
                 <div className="absolute top-4 right-4 z-10">
@@ -140,7 +144,7 @@ const ArticleList = () => {
             </div>
           ))
         ) : (
-          <div className="col-span-full text-center text-gray-500 p-8 font-medium">{t('noArticlesFound')}</div>
+          <div className="col-span-full text-center text-gray-500 p-8 font-medium dark:text-gray-400">{t('noArticlesFound')}</div>
         )}
       </div>
     </div>

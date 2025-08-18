@@ -1,4 +1,4 @@
-// src/pages/SingleArticle.jsx (Corrected with Comments Section)
+// src/pages/SingleArticle.jsx (Corrected with Comments Section and Dark Mode)
 
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
@@ -8,8 +8,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft } from 'react-icons/fa';
 import { UserContext } from '../context/UserContext';
+import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 import SubscribeButton from '../components/SubscribeButton';
-// NEW: Import the CommentSection component
 import CommentSection from '../components/CommentSection';
 
 const SingleArticle = () => {
@@ -20,8 +20,8 @@ const SingleArticle = () => {
   const isViewIncremented = useRef(false);
   const { t } = useTranslation();
   const { user } = useContext(UserContext);
+  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
 
-  // NEW: Determine if the article is liked by the current user
   const isLiked = user && article?.likedBy?.includes(user._id);
 
   useEffect(() => {
@@ -69,7 +69,6 @@ const SingleArticle = () => {
     }
   }, [articleId]);
 
-  // UPDATED: handleLike now only works if the user hasn't liked the article
   const handleLike = async (e) => {
     e.stopPropagation();
     if (!user) {
@@ -86,7 +85,7 @@ const SingleArticle = () => {
       setArticle(prevArticle => ({
         ...prevArticle,
         likes: (prevArticle.likes || 0) + 1,
-        likedBy: [...(prevArticle.likedBy || []), user._id] // NEW: Update the likedBy array
+        likedBy: [...(prevArticle.likedBy || []), user._id]
       }));
       toast.success('Article liked!');
     } catch (err) {
@@ -95,22 +94,19 @@ const SingleArticle = () => {
     }
   };
 
-  // NEW: handleUnlike function
   const handleUnlike = async (e) => {
     e.stopPropagation();
     if (!user) {
-      // This case should not be reached with the new logic, but it's good practice to keep
       toast.info('Please log in to unlike this article.');
       navigate('/login');
       return;
     }
     try {
-      // This endpoint needs to be created on your backend
       await axios.patch(`http://localhost:5001/api/articles/${article._id}/unlike`);
       setArticle(prevArticle => ({
         ...prevArticle,
         likes: (prevArticle.likes || 1) - 1,
-        likedBy: prevArticle.likedBy.filter(id => id !== user._id) // NEW: Remove user ID
+        likedBy: prevArticle.likedBy.filter(id => id !== user._id)
       }));
       toast.success('Article unliked!');
     } catch (err) {
@@ -119,7 +115,6 @@ const SingleArticle = () => {
     }
   };
 
-  // NEW: handleShare function
   const handleShare = async (e) => {
     e.stopPropagation();
     if (!user) {
@@ -142,7 +137,6 @@ const SingleArticle = () => {
     }
   };
 
-  // NEW: Admin approval/rejection handlers
   const handleStatusChange = async (newStatus) => {
     try {
       const token = localStorage.getItem('token');
@@ -164,33 +158,35 @@ const SingleArticle = () => {
   const handleReject = () => handleStatusChange('rejected');
 
   if (loading) {
-    return <div className="text-center p-8 text-xl font-medium text-gray-600">{t('loadingArticle')}</div>;
+    // CHANGE: Add dark mode text color
+    return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingArticle')}</div>;
   }
 
   if (!article) {
+    // CHANGE: No dark mode needed for red text
     return <div className="text-center p-8 text-xl font-medium text-red-500">{t('articleNotFound')}</div>;
   }
   
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 bg-white shadow-xl rounded-2xl my-8">
+    // CHANGE: Add dark mode classes to the main container
+    <div className="max-w-4xl mx-auto p-4 md:p-8 bg-white shadow-xl rounded-2xl my-8 dark:bg-gray-900 transition-colors duration-300">
       <button 
         onClick={() => navigate(-1)} 
-        className="mb-6 flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+        // CHANGE: Add dark mode classes to the back button
+        className="mb-6 flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
       >
         <FaArrowLeft />
         <span>{t('backToArticles')}</span>
       </button>
 
-      <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4">{article.title}</h1>
+      <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4 dark:text-gray-100">{article.title}</h1>
       
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between text-gray-500 text-sm mb-6 font-medium">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between text-gray-500 text-sm mb-6 font-medium dark:text-gray-400">
         <p className="mb-2 md:mb-0">
           {t('by')}: <span className="font-semibold">{article.author?.username}</span> | {t('publishedOn')}: {new Date(article.createdAt).toLocaleDateString()}
         </p>
         
-        {/* NEW: Buttons for Like, Share, and Subscribe */}
         <div className="flex items-center space-x-2 mt-2 md:mt-0">
-          {/* UPDATED: Conditionally render Like or Unlike button */}
           <button
             onClick={isLiked ? handleUnlike : handleLike}
             className={`py-2 px-4 text-sm font-semibold text-white rounded-lg transition-colors ${
@@ -212,7 +208,6 @@ const SingleArticle = () => {
         </div>
       </div>
 
-      {/* NEW: Admin Approve/Reject buttons */}
       {user?.role === 'Admin' && article.status === 'pending' && (
         <div className="mt-4 flex space-x-2">
           <button
@@ -248,9 +243,11 @@ const SingleArticle = () => {
           </div>
       )}
       
-      <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: article.content }}></div>
+      {/* CHANGE: Add dark mode classes to the prose content */}
+      <div className="prose prose-lg max-w-none text-gray-700 dark:prose-invert dark:text-gray-300" dangerouslySetInnerHTML={{ __html: article.content }}></div>
       
-      <div className="mt-10 flex flex-wrap gap-6 items-center text-gray-600 text-lg font-semibold">
+      {/* CHANGE: Add dark mode classes to the info section */}
+      <div className="mt-10 flex flex-wrap gap-6 items-center text-gray-600 text-lg font-semibold dark:text-gray-400">
         <div className="flex items-center space-x-2">
             <span>{article.views || 0}</span>
             <span>Views</span>
@@ -265,7 +262,6 @@ const SingleArticle = () => {
         </div>
       </div>
       
-      {/* NEW: Add the CommentSection component here */}
       <div className="mt-12">
         <CommentSection articleId={articleId} articleAuthorId={article.author._id} />
       </div>

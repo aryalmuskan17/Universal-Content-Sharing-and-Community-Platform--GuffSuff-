@@ -1,16 +1,18 @@
-// client/src/pages/EditArticle.jsx (Styled Version)
+// client/src/pages/EditArticle.jsx (Styled Version with Dark Mode)
 
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
+import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 import { toast } from 'react-toastify';
 
 const EditArticle = () => {
   const { articleId } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
 
   const [article, setArticle] = useState({ title: '', content: '', status: '' });
   const [loading, setLoading] = useState(true);
@@ -59,46 +61,52 @@ const EditArticle = () => {
   };
 
   if (loading) {
-    return <div className="text-center p-8 text-xl font-medium text-gray-600">{t('loading')}...</div>;
+    // CHANGE: Add dark mode text color
+    return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loading')}...</div>;
   }
   if (error) {
+    // CHANGE: No dark mode needed for red text
     return <div className="text-center p-8 text-red-500 font-medium">{error}</div>;
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg my-8 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">{t('editArticle')}</h2>
+    // CHANGE: Add dark mode classes to the main container
+    <div className="bg-white p-6 rounded-xl shadow-lg my-8 max-w-4xl mx-auto dark:bg-gray-900 transition-colors duration-300">
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 dark:text-gray-100">{t('editArticle')}</h2>
       
       <form onSubmit={handleUpdate} className="space-y-6">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">{t('title')}</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('title')}</label>
           <input
             type="text"
             name="title"
             value={article.title}
             onChange={handleEditChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+            // CHANGE: Add dark mode classes to the input
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">{t('content')}</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('content')}</label>
           <textarea
             name="content"
             value={article.content}
             onChange={handleEditChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+            // CHANGE: Add dark mode classes to the textarea
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             rows="10"
             required
           ></textarea>
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">{t('status')}</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('status')}</label>
           <select
             name="status"
             value={article.status}
             onChange={handleEditChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+            // CHANGE: Add dark mode classes to the select input
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
           >
             <option value="draft">{t('draft')}</option>
             <option value="pending">{t('pending')}</option>

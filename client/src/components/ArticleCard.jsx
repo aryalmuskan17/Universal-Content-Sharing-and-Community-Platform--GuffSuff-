@@ -1,4 +1,4 @@
-// client/src/components/ArticleCard.jsx (Final Corrected Version with Comment Count)
+// client/src/components/ArticleCard.jsx (Final Corrected Version with Dark Mode)
 
 import React, { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,18 +7,18 @@ import { toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
 import SubscribeButton from './SubscribeButton';
 import { UserContext } from '../context/UserContext';
+import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 import { useNavigate } from 'react-router-dom';
 
 const ArticleCard = ({ article }) => {
   const { t } = useTranslation();
   const [currentArticle, setCurrentArticle] = useState(article);
   const { user } = useContext(UserContext);
+  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
   const navigate = useNavigate();
 
-  // NEW: Determine if the article is liked by the current user
   const isLiked = user && currentArticle?.likedBy?.includes(user._id);
 
-  // If the article is already rejected, don't show it in the feed
   if (currentArticle.status === 'rejected') {
     return null;
   }
@@ -26,7 +26,6 @@ const ArticleCard = ({ article }) => {
   const contentSnippet = currentArticle.content.substring(0, 150) + '...';
   const formattedDate = new Date(currentArticle.createdAt).toLocaleDateString();
 
-  // UPDATED: handleLike now only works if the user hasn't liked the article
   const handleLike = async (e) => {
     e.stopPropagation();
     if (!user) {
@@ -39,10 +38,8 @@ const ArticleCard = ({ article }) => {
       return;
     }
     try {
-      // Step 1: Call the API to update the like count on the backend
       await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/like`);
       
-      // Step 2: Manually update the likes count and likedBy array in the state
       setCurrentArticle(prevArticle => ({
         ...prevArticle,
         likes: (prevArticle.likes || 0) + 1,
@@ -56,7 +53,6 @@ const ArticleCard = ({ article }) => {
     }
   };
 
-  // NEW: handleUnlike function
   const handleUnlike = async (e) => {
     e.stopPropagation();
     if (!user) {
@@ -65,7 +61,6 @@ const ArticleCard = ({ article }) => {
       return;
     }
     try {
-      // This endpoint needs to be created on your backend
       await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/unlike`);
       
       setCurrentArticle(prevArticle => ({
@@ -81,7 +76,6 @@ const ArticleCard = ({ article }) => {
     }
   };
 
-  // UPDATED: Now redirects to login if the user is not logged in
   const handleShare = async (e) => {
     e.stopPropagation();
     if (!user) {
@@ -90,16 +84,12 @@ const ArticleCard = ({ article }) => {
       return;
     }
     try {
-      // Step 1: Construct the article URL
       const articleUrl = `${window.location.origin}/article/${currentArticle._id}`;
 
-      // Step 2: Copy the URL to the clipboard
       await navigator.clipboard.writeText(articleUrl);
       
-      // Step 3: Call the API to increment the share count
       await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/share`);
       
-      // Step 4: Provide feedback to the user
       toast.success('Link copied to clipboard and share count updated!');
     } catch (err) {
       toast.error('Failed to copy link or share article.');
@@ -111,7 +101,6 @@ const ArticleCard = ({ article }) => {
     navigate(`/article/${currentArticle._id}`);
   };
 
-  // NEW: Admin approval/rejection handlers
   const handleStatusChange = async (e, newStatus) => {
     e.stopPropagation();
     try {
@@ -133,7 +122,6 @@ const ArticleCard = ({ article }) => {
   const handleApprove = (e) => handleStatusChange(e, 'published');
   const handleReject = (e) => handleStatusChange(e, 'rejected');
   
-  // NEW: Added a handleCommentClick function
   const handleCommentClick = (e) => {
     e.stopPropagation();
     navigate(`/article/${currentArticle._id}`);
@@ -141,7 +129,8 @@ const ArticleCard = ({ article }) => {
 
   return (
     <div 
-      className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 cursor-pointer flex flex-col h-full"
+      // CHANGE: Add dark mode styles to the main container
+      className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 cursor-pointer flex flex-col h-full dark:bg-gray-900 dark:text-gray-100 dark:hover:shadow-lg dark:hover:shadow-indigo-500/50"
       onClick={handleArticleClick}
     >
       {currentArticle.mediaUrl && (
@@ -164,15 +153,15 @@ const ArticleCard = ({ article }) => {
 
       <div className="p-6 flex flex-col justify-between flex-1">
         <div>
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">
+          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide dark:text-indigo-400">
             {currentArticle.category || t('uncategorized')}
           </span>
           
-          <h2 className="mt-2 text-2xl font-bold leading-tight text-gray-900 line-clamp-2">
+          <h2 className="mt-2 text-2xl font-bold leading-tight text-gray-900 line-clamp-2 dark:text-gray-100">
             {currentArticle.title}
           </h2>
           
-          <p className="mt-4 text-gray-500 line-clamp-3">
+          <p className="mt-4 text-gray-500 line-clamp-3 dark:text-gray-300">
             {contentSnippet}
           </p>
         </div>
@@ -182,7 +171,7 @@ const ArticleCard = ({ article }) => {
             <div className="text-sm text-gray-400">
               <span className="font-semibold">{t('by')}:</span>
             </div>
-            <div className="text-sm font-medium text-gray-700">
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {currentArticle.author?.username || 'Unknown'}
             </div>
           </div>
@@ -194,7 +183,7 @@ const ArticleCard = ({ article }) => {
           </div>
         </div>
         
-        <div className="mt-4 flex flex-wrap gap-4 items-center text-gray-500 text-sm">
+        <div className="mt-4 flex flex-wrap gap-4 items-center text-gray-500 text-sm dark:text-gray-400">
           <div className="flex items-center space-x-1">
             <span className="font-semibold">{currentArticle.views || 0}</span>
             <span>Views</span>
@@ -208,7 +197,6 @@ const ArticleCard = ({ article }) => {
             <span>Shares</span>
           </div>
           
-          {/* NEW: Display comment count */}
           <div className="flex items-center space-x-1">
             <span className="font-semibold">{currentArticle.commentCount || 0}</span>
             <span>Comments</span>
@@ -221,7 +209,6 @@ const ArticleCard = ({ article }) => {
         
         <div className="mt-4 flex space-x-2">
           {user?.role === 'Admin' && currentArticle.status === 'pending' ? (
-            // Render Approve/Reject buttons for admin on pending articles
             <>
               <button
                 onClick={handleApprove}
@@ -237,7 +224,6 @@ const ArticleCard = ({ article }) => {
               </button>
             </>
           ) : (
-            // Existing Like/Share buttons for other users/statuses
             <>
               <button
                 onClick={isLiked ? handleUnlike : handleLike}
@@ -254,7 +240,6 @@ const ArticleCard = ({ article }) => {
                 Share
               </button>
               
-              {/* NEW: Add the Comment button */}
               <button
                 onClick={handleCommentClick}
                 className="flex-1 py-2 text-sm font-semibold text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors"
@@ -268,7 +253,8 @@ const ArticleCard = ({ article }) => {
         {currentArticle.tags && currentArticle.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
             {currentArticle.tags.map(tag => (
-              <span key={tag} className="px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded-full font-medium">
+              // CHANGE: Add dark mode styles to tags
+              <span key={tag} className="px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded-full font-medium dark:bg-gray-700 dark:text-gray-300">
                 {tag}
               </span>
             ))}

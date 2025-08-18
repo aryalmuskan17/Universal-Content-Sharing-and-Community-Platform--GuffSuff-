@@ -1,15 +1,17 @@
-// client/src/components/UserManagement.jsx (Styled Version)
+// client/src/components/UserManagement.jsx (Styled Version with Dark Mode)
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { FaTrashAlt } from 'react-icons/fa'; // Make sure you have react-icons installed
+import { FaTrashAlt } from 'react-icons/fa';
+import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 
 const UserManagement = () => {
     const { t } = useTranslation();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
 
     const fetchUsers = async () => {
         try {
@@ -37,7 +39,7 @@ const UserManagement = () => {
                 headers: { 'x-auth-token': token }
             });
             toast.success(t('userRoleUpdated'));
-            fetchUsers(); // Refresh the list
+            fetchUsers();
         } catch (error) {
             console.error('Error updating user role:', error);
             toast.error(t('failedToUpdateRole'));
@@ -52,7 +54,7 @@ const UserManagement = () => {
                     headers: { 'x-auth-token': token }
                 });
                 toast.success(t('userDeleted'));
-                fetchUsers(); // Refresh the list
+                fetchUsers();
             } catch (error) {
                 console.error('Error deleting user:', error);
                 toast.error(t('failedToDeleteUser'));
@@ -61,16 +63,19 @@ const UserManagement = () => {
     };
 
     if (loading) {
-        return <div className="text-center p-8 text-xl font-medium text-gray-600">{t('loadingUsers')}</div>;
+        // CHANGE: Add dark mode text color
+        return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingUsers')}</div>;
     }
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-lg my-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">{t('manageUsers')}</h2>
+        // CHANGE: Add dark mode classes to the main container
+        <div className="bg-white p-6 rounded-xl shadow-lg my-8 dark:bg-gray-900 transition-colors duration-300">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 dark:text-gray-100">{t('manageUsers')}</h2>
             <div className="overflow-x-auto rounded-lg">
                 <table className="min-w-full leading-normal">
                     <thead>
-                        <tr className="text-gray-600 uppercase text-sm font-semibold bg-gray-50 border-b-2 border-gray-200">
+                        {/* CHANGE: Add dark mode classes to the table header */}
+                        <tr className="text-gray-600 uppercase text-sm font-semibold bg-gray-50 border-b-2 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             <th className="py-3 px-6 text-left">{t('username')}</th>
                             <th className="py-3 px-6 text-left">{t('role')}</th>
                             <th className="py-3 px-6 text-center">{t('actions')}</th>
@@ -78,15 +83,17 @@ const UserManagement = () => {
                     </thead>
                     <tbody>
                         {users.map(user => (
-                            <tr key={user._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                                <td className="py-4 px-6 text-left text-gray-700 font-medium whitespace-nowrap">
+                            // CHANGE: Add dark mode classes to table rows
+                            <tr key={user._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors dark:border-gray-700 dark:hover:bg-gray-800">
+                                <td className="py-4 px-6 text-left text-gray-700 font-medium whitespace-nowrap dark:text-gray-200">
                                   {user.username}
                                 </td>
                                 <td className="py-4 px-6 text-left">
                                     <select
                                         value={user.role}
                                         onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                                        className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 transition-colors"
+                                        // CHANGE: Add dark mode classes to the select input
+                                        className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                                     >
                                         <option value="Admin">{t('admin')}</option>
                                         <option value="Publisher">{t('publisher')}</option>

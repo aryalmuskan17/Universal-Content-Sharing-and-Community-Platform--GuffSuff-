@@ -1,10 +1,11 @@
 // client/src/components/NotificationBell.jsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { FaBell } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 
 const NotificationBell = () => {
   const { t } = useTranslation();
@@ -12,6 +13,7 @@ const NotificationBell = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
 
   useEffect(() => {
     fetchNotifications();
@@ -74,7 +76,6 @@ const NotificationBell = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
   
-  // FINAL CORRECTED LOGIC: Determines the correct link based on notification type
   const getNotificationLink = (notification) => {
     const articleId = notification.article ? notification.article._id : null;
     
@@ -83,10 +84,8 @@ const NotificationBell = () => {
       case 'comment':
       case 'share':
       case 'publish':
-        // These link to the singular article page
         return articleId ? `/article/${articleId}` : '#';
       case 'review':
-        // Admins should go to the admin dashboard
         return '/admin-dashboard';
       default:
         return '#';
@@ -97,7 +96,8 @@ const NotificationBell = () => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={toggleDropdown} 
-        className="relative p-2 rounded-full text-gray-600 hover:text-gray-900 focus:outline-none"
+        // CHANGE: Add dark mode styles to the button
+        className="relative p-2 rounded-full text-gray-600 hover:text-gray-900 focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
       >
         <FaBell className="h-6 w-6" />
         {unreadCount > 0 && (
@@ -108,18 +108,20 @@ const NotificationBell = () => {
       </button>
 
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl overflow-hidden z-50 max-h-96 overflow-y-auto">
-          <div className="px-4 py-3 border-b border-gray-200 text-lg font-semibold text-gray-800">
+        // CHANGE: Add dark mode styles to the dropdown container
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl overflow-hidden z-50 max-h-96 overflow-y-auto dark:bg-gray-900 dark:shadow-2xl">
+          <div className="px-4 py-3 border-b border-gray-200 text-lg font-semibold text-gray-800 dark:border-gray-700 dark:text-gray-100">
             {t('notifications')}
           </div>
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {notifications.length === 0 ? (
-              <li className="p-4 text-center text-gray-500">
+              <li className="p-4 text-center text-gray-500 dark:text-gray-400">
                 {t('noNewNotifications')}
               </li>
             ) : (
               notifications.map(n => (
-                <li key={n._id} className={`p-4 transition-colors ${n.isRead ? 'bg-gray-50' : 'bg-white'}`}>
+                // CHANGE: Add dark mode styles to each list item
+                <li key={n._id} className={`p-4 transition-colors ${n.isRead ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
                   <Link 
                     to={getNotificationLink(n)}
                     onClick={() => {
@@ -128,17 +130,17 @@ const NotificationBell = () => {
                     }}
                     className="block"
                   >
-                    <p className={`text-sm ${n.isRead ? 'text-gray-500' : 'text-gray-800 font-medium'}`}>
+                    <p className={`text-sm ${n.isRead ? 'text-gray-500 dark:text-gray-400' : 'text-gray-800 font-medium dark:text-gray-100'}`}>
                       {n.message}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-gray-400 mt-1 dark:text-gray-500">
                       {new Date(n.createdAt).toLocaleTimeString()}
                     </p>
                   </Link>
                   {!n.isRead && (
                     <button 
                       onClick={(e) => { e.stopPropagation(); markAsRead(n._id); }}
-                      className="mt-2 text-xs text-indigo-500 hover:underline focus:outline-none"
+                      className="mt-2 text-xs text-indigo-500 hover:underline focus:outline-none dark:text-indigo-400"
                     >
                       {t('markAsRead')}
                     </button>

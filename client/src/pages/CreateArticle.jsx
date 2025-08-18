@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 
 const CreateArticle = () => {
   const { t } = useTranslation();
-  
+  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
+
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -83,12 +85,14 @@ const CreateArticle = () => {
 
   return (
     <div className="flex justify-center items-center p-4">
-      <div className="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">{t('createArticle')}</h1>
+      {/* CHANGE: Add dark mode classes to the main container */}
+      <div className="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg dark:bg-gray-900 transition-colors duration-300">
+        <h1 className="text-3xl font-bold text-gray-800 text-center mb-6 dark:text-gray-100">{t('createArticle')}</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
+            {/* CHANGE: Add dark mode classes to labels and inputs */}
+            <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('title')}
             </label>
             <input
@@ -98,12 +102,12 @@ const CreateArticle = () => {
               value={formData.title}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             />
           </div>
 
           <div>
-            <label htmlFor="content" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label htmlFor="content" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('content')}
             </label>
             <textarea
@@ -113,25 +117,26 @@ const CreateArticle = () => {
               value={formData.content}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             ></textarea>
           </div>
           
           <div>
-            <label htmlFor="media" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label htmlFor="media" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('media')}
             </label>
+            {/* CHANGE: Add dark mode classes to the file input's pseudo-elements */}
             <input
               type="file"
               id="media"
               name="media"
               onChange={handleFileChange}
-              className="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors"
+              className="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors dark:text-gray-300 dark:file:bg-indigo-900 dark:file:text-indigo-200 dark:hover:file:bg-indigo-800"
             />
           </div>
           
           <div>
-            <label htmlFor="tags" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label htmlFor="tags" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('tags')}
             </label>
             <input
@@ -141,12 +146,12 @@ const CreateArticle = () => {
               value={formData.tags}
               onChange={handleChange}
               placeholder={t('tagsPlaceholder')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             />
           </div>
           
           <div>
-            <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('category')}
             </label>
             <input
@@ -155,12 +160,12 @@ const CreateArticle = () => {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             />
           </div>
           
           <div>
-            <label htmlFor="language" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label htmlFor="language" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('language')}
             </label>
             <select
@@ -168,7 +173,7 @@ const CreateArticle = () => {
               name="language"
               value={formData.language}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             >
               <option value="en">{t('english')}</option>
               <option value="ne">{t('nepali')}</option>
@@ -178,7 +183,8 @@ const CreateArticle = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400"
+            // CHANGE: Add dark mode class for the disabled state
+            className="w-full py-3 px-4 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 dark:disabled:bg-gray-600"
           >
             {loading ? t('submitting') : t('submitArticle')}
           </button>
