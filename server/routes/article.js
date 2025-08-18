@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Article = require('../models/Article');
 const Comment = require('../models/Comment'); 
 const auth = require('../middleware/auth');
@@ -7,7 +8,6 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const multer = require('multer');
 
-// Configure Multer for file storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/'); 
@@ -18,10 +18,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// FINAL CORRECTED POST /api/articles ROUTE
-// @desc    Create a new article
-// @route   POST /api/articles
-// @access  Private (Publisher, Admin)
 router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (req, res) => {
   try {
     const { title, content, tags, category, language } = req.body;
@@ -34,7 +30,6 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
       language,
     };
     
-    // Set status based on user role
     if (req.user.role === 'Publisher') {
       articleData.status = 'pending';
     } else { 
@@ -63,7 +58,6 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
         await Promise.all(notificationPromises);
     }
     
-    // Admin notification logic
     if (articleData.status === 'pending') {
         const fromUser = await User.findById(req.user.id);
         if (!fromUser) {
@@ -91,10 +85,6 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
   }
 });
 
-// CORRECTED GET /api/articles ROUTE - Now with Comment Count and Correct Data Structure
-// @desc    Get all articles for all roles with filtering, searching, and sorting
-// @route   GET /api/articles
-// @access  Public
 router.get('/', async (req, res) => {
   try {
     let matchQuery = { status: 'published' };
@@ -128,9 +118,7 @@ router.get('/', async (req, res) => {
     }
 
     const articles = await Article.aggregate([
-      // Stage 1: Filter articles based on the query
       { $match: matchQuery },
-      // Stage 2: Look up the author from the users collection
       {
         $lookup: {
           from: 'users', 
@@ -139,7 +127,6 @@ router.get('/', async (req, res) => {
           as: 'authorDetails'
         }
       },
-      // Stage 3: Look up comments for each article from the comments collection
       {
         $lookup: {
           from: 'comments',
@@ -148,15 +135,12 @@ router.get('/', async (req, res) => {
           as: 'comments'
         }
       },
-      // Stage 4: Add a new field 'commentCount'
       {
         $addFields: {
           commentCount: { $size: '$comments' }
         }
       },
-      // Stage 5: Sort the articles
       { $sort: sort },
-      // Stage 6: Project the final document shape
       {
         $project: {
           _id: '$_id', 
@@ -186,9 +170,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @desc    Get all pending articles for Admin review
-// @route   GET /api/articles/pending
-// @access  Private (Admin only)
 router.get('/pending', auth(['Admin']), async (req, res) => {
   try {
     const articles = await Article.find({ status: 'pending' })
@@ -202,9 +183,6 @@ router.get('/pending', auth(['Admin']), async (req, res) => {
   }
 });
 
-// @desc    Get a single article by ID
-// @route   GET /api/articles/:id
-// @access  Public
 router.get('/:id', async (req, res) => {
   try {
     const article = await Article.findById(req.params.id)
@@ -224,9 +202,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// NEW: @desc Increment the views count for an article
-// @route PATCH /api/articles/:id/view
-// @access Public (view increments only if a token is provided)
 router.patch('/:id/view', auth(), async (req, res) => {
     try {
         if (!req.user) {
@@ -248,9 +223,6 @@ router.patch('/:id/view', auth(), async (req, res) => {
     }
 });
 
-// FIXED: @desc    Like an article and create a notification
-// @route   PATCH /api/articles/:id/like
-// @access  Private (Authenticated User)
 router.patch('/:id/like', auth(), async (req, res) => {
   try {
     const articleToUpdate = await Article.findById(req.params.id);
@@ -292,9 +264,6 @@ router.patch('/:id/like', auth(), async (req, res) => {
   }
 });
 
-// FIXED: @desc    Unlike an article
-// @route   PATCH /api/articles/:id/unlike
-// @access  Private (Authenticated User)
 router.patch('/:id/unlike', auth(), async (req, res) => {
   try {
     const articleToUpdate = await Article.findById(req.params.id);
@@ -322,9 +291,6 @@ router.patch('/:id/unlike', auth(), async (req, res) => {
   }
 });
 
-// UPDATED: @desc    Increment the shares count for an article and create a notification
-// @route   PATCH /api/articles/:id/share
-// @access  Private (Authenticated User)
 router.patch('/:id/share', auth(), async (req, res) => {
   try {
     const article = await Article.findByIdAndUpdate(
@@ -337,14 +303,13 @@ router.patch('/:id/share', auth(), async (req, res) => {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
     
-    // NEW: Create a notification for the publisher
     if (req.user.id.toString() !== article.author.toString()) {
       const sharer = await User.findById(req.user.id);
       const publisher = await User.findById(article.author);
       if (publisher) {
         await Notification.create({
-          user: publisher._id, // The publisher is the recipient
-          fromUser: sharer._id, // The sharer is the sender
+          user: publisher._id, 
+          fromUser: sharer._id, 
           article: article._id,
           type: 'share',
           message: `${sharer.username} shared your article: "${article.title}"`,
@@ -359,22 +324,57 @@ router.patch('/:id/share', auth(), async (req, res) => {
   }
 });
 
-// @desc    Get performance analytics for a publisher's articles
-// @route   GET /api/articles/publisher/analytics
-// @access  Private (Publisher, Admin)
 router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
-    const articles = await Article.find({ author: req.user.id }).select('+mediaUrl');
-    res.status(200).json({ success: true, data: articles });
+    let matchStage = {};
+    matchStage = { author: new mongoose.Types.ObjectId(req.user.id) };
+    
+    const analytics = await Article.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'author',
+          foreignField: '_id',
+          as: 'authorDetails'
+        }
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: '_id',
+          foreignField: 'article',
+          as: 'comments'
+        }
+      },
+      {
+        $addFields: {
+          commentCount: { $size: '$comments' }
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          status: 1,
+          views: 1,
+          likes: 1,
+          shares: 1,
+          createdAt: 1,
+          author: { $arrayElemAt: ['$authorDetails', 0] },
+          commentCount: 1,
+        }
+      }
+    ]);
+
+    res.status(200).json({ success: true, data: analytics });
   } catch (err) {
     console.error('An error occurred in the publisher analytics route:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// @desc    Update an existing article
-// @route   PUT /api/articles/:id
-// @access  Private (Publisher, Admin)
 router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
     const article = await Article.findById(req.params.id).select('+mediaUrl');
@@ -400,9 +400,6 @@ router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
   }
 });
 
-// FINAL CORRECTED: @desc Admin approves or rejects an article
-// @route   PATCH /api/articles/:id/status
-// @access  Private (Admin only)
 router.patch('/:id/status', auth(['Admin']), async (req, res) => {
   try {
     const { status } = req.body;
@@ -416,10 +413,9 @@ router.patch('/:id/status', auth(['Admin']), async (req, res) => {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
 
-    // NEW LOGIC: Notify the publisher if the article is approved
     if (status === 'published') {
       const publisher = await User.findById(article.author);
-      const admin = await User.findById(req.user.id); // Fetch admin details for the message
+      const admin = await User.findById(req.user.id);
       if (publisher && admin) {
         await Notification.create({
           user: publisher._id,
