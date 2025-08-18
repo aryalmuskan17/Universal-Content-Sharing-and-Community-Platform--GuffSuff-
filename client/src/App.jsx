@@ -41,7 +41,7 @@ function App() {
           {/* Protected Routes with Layout (all wrapped by ProtectedRoute) */}
           <Route 
             path="profile" 
-            element={<ProtectedRoute requiredRoles={['User', 'Publisher', 'Admin']}><Profile /></ProtectedRoute>} 
+            element={<ProtectedRoute requiredRoles={['Reader', 'Publisher', 'Admin']}><Profile /></ProtectedRoute>} 
           />
           <Route 
             path="create-article" 
