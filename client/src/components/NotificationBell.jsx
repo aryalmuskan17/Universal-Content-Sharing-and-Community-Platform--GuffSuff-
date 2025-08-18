@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { FaBell } from 'react-icons/fa';
-import { Link } from 'react-router-dom'; // Import Link from react-router-dom
+import { Link } from 'react-router-dom';
 
 const NotificationBell = () => {
   const { t } = useTranslation();
@@ -15,7 +15,7 @@ const NotificationBell = () => {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000); // Fetch every minute
+    const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -73,6 +73,25 @@ const NotificationBell = () => {
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+  
+  // FINAL CORRECTED LOGIC: Determines the correct link based on notification type
+  const getNotificationLink = (notification) => {
+    const articleId = notification.article ? notification.article._id : null;
+    
+    switch (notification.type) {
+      case 'like':
+      case 'comment':
+      case 'share':
+      case 'publish':
+        // These link to the singular article page
+        return articleId ? `/article/${articleId}` : '#';
+      case 'review':
+        // Admins should go to the admin dashboard
+        return '/admin-dashboard';
+      default:
+        return '#';
+    }
+  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -102,7 +121,7 @@ const NotificationBell = () => {
               notifications.map(n => (
                 <li key={n._id} className={`p-4 transition-colors ${n.isRead ? 'bg-gray-50' : 'bg-white'}`}>
                   <Link 
-                    to={n.article ? `/articles/${n.article}` : '#'}
+                    to={getNotificationLink(n)}
                     onClick={() => {
                       if (!n.isRead) markAsRead(n._id);
                       setIsDropdownOpen(false);
