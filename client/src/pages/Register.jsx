@@ -1,18 +1,20 @@
-// client/src/pages/Register.jsx (Final Corrected Version with Dark Mode)
+// client/src/pages/Register.jsx (Final Corrected Version with Logo and Dark Mode)
 
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
-import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
+import { ThemeContext } from '../context/ThemeContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link, useNavigate } from 'react-router-dom';
+// NEW: Import your logo image. Please update the path.
+import Logo from '../assets/logo.png';
 
 const Register = () => {
   const { t } = useTranslation();
   const { login } = useContext(UserContext);
-  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
+  const { isDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
@@ -40,14 +42,23 @@ const Register = () => {
   };
 
   return (
-    // CHANGE: Add dark mode classes to the background container
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 dark:bg-gray-800 transition-colors duration-300">
-      {/* CHANGE: Add dark mode classes to the form container */}
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg dark:bg-gray-900 dark:shadow-none">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6 dark:text-gray-100">{t('register')}</h2>
+        
+        {/* NEW: Logo and Name Section */}
+        <div className="flex flex-col items-center justify-center mb-6">
+          <img 
+            src={Logo} 
+            alt="Logo" 
+            className="h-16 w-16 mb-2" // Adjust size as needed
+          />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            GuffSuff
+          </h1>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            {/* CHANGE: Add dark mode classes to labels and inputs */}
             <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300" htmlFor="username">
               {t('username')}
             </label>

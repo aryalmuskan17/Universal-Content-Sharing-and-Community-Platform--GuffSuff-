@@ -1,12 +1,14 @@
-// client/src/Login.jsx (Final Corrected Version with Corrected Path and Dark Mode)
+// client/src/Login.jsx (Final Corrected Version with Logo and Dark Mode)
 
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { UserContext } from './context/UserContext'; // CHANGE: Corrected import path
-import { ThemeContext } from './context/ThemeContext'; // CHANGE: Corrected import path
+import { UserContext } from './context/UserContext';
+import { ThemeContext } from './context/ThemeContext';
 import { toast } from 'react-toastify';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+// NEW: Import your logo image. Please update the path.
+import Logo from './assets/logo.png'; 
 
 const Login = () => {
   const { t } = useTranslation();
@@ -43,7 +45,19 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 dark:bg-gray-800 transition-colors duration-300">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg dark:bg-gray-900 dark:shadow-none">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6 dark:text-gray-100">{t('login')}</h2>
+        
+        {/* NEW: Logo and Name Section */}
+        <div className="flex flex-col items-center justify-center mb-6">
+          <img 
+            src={Logo} 
+            alt="Logo" 
+            className="h-16 w-16 mb-2" // Adjust size as needed
+          />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            GuffSuff
+          </h1>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('username')}</label>
