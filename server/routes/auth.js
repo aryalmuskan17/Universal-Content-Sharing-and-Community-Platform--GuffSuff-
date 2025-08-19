@@ -1,22 +1,22 @@
-// server/routes/auth.js (Final Corrected Version)
+// server/routes/auth.js (Final Corrected Version with Password Change)
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
 const router = express.Router();
-
-// NOTE: We are removing the 'secret' variable and will use process.env.JWT_SECRET directly for consistency.
 
 // Corrected Middleware to verify JWT token and get user info
 const protect = (req, res, next) => {
   let token = req.header('x-auth-token');
 
-  // FIX: This section now correctly checks for the Authorization: Bearer token
   if (!token && req.header('Authorization')) {
     const authHeader = req.header('Authorization');
     if (authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7); // Extract the token string
+      token = authHeader.substring(7);
     }
   }
 
@@ -34,6 +34,23 @@ const protect = (req, res, next) => {
   }
 };
 
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = 'uploads/profilePictures';
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
 // Route to get a user's own profile (Full profile, including subscriptions)
 router.get('/profile', protect, async (req, res) => {
   try {
@@ -48,19 +65,89 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
-// Route to update a user's own profile
-router.patch('/profile', protect, async (req, res) => {
-  const { bio, picture, contactInfo } = req.body;
+// Route to update a user's own profile with new fields and a file upload
+router.patch('/profile', protect, upload.single('profilePicture'), async (req, res) => {
+  const { fullName, bio, contactInfo } = req.body;
+  let updateData = { fullName, bio, contactInfo };
+
   try {
+    if (req.file) {
+      updateData.picture = req.file.path;
+    }
+    
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
-      { bio, picture, contactInfo },
-      { new: true }
+      updateData,
+      { new: true, runValidators: true }
     ).select('-password');
+    
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
     res.status(200).json(updatedUser);
   } catch (error) {
     console.error('Error updating user profile:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Route to update a user's username
+router.patch('/profile/username', protect, async (req, res) => {
+  const { username } = req.body;
+  if (!username) {
+    return res.status(400).json({ error: 'Username is required.' });
+  }
+
+  try {
+    const existingUser = await User.findOne({ username });
+    if (existingUser && existingUser._id.toString() !== req.user.id) {
+      return res.status(409).json({ error: 'This username is already taken.' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { username },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error('Error updating username:', error);
+    res.status(500).json({ error: 'Server error updating username.' });
+  }
+});
+
+// NEW: Route to update a user's password
+router.patch('/profile/password', protect, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // Check if the current password is correct
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Incorrect current password.' });
+    }
+
+    // Hash the new password and save it
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password updated successfully.' });
+
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ error: 'Server error updating password.' });
   }
 });
 
@@ -141,7 +228,6 @@ router.post('/register', async (req, res) => {
     const newUser = new User({ username, password: hashedPassword, role });
     await newUser.save();
 
-    // FIX: Using process.env.JWT_SECRET directly for consistency
     const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     res.status(201).json({
@@ -172,7 +258,6 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: 'Invalid credentials' });
 
-    // FIX: Using process.env.JWT_SECRET directly for consistency
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.status(200).json({ token, user: { _id: user._id, username: user.username, role: user.role, subscriptions: user.subscriptions || [] } });
   } catch (error) {

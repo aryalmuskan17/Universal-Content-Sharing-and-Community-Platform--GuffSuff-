@@ -1,4 +1,4 @@
-// server/models/User.js
+// server/models/User.js (Corrected with new fields)
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
@@ -16,10 +16,16 @@ const UserSchema = new mongoose.Schema({
     enum: ['Reader', 'Publisher', 'Admin'],
     default: 'Reader',
   },
+  // NEW: Add a field for the user's full name
+  fullName: {
+    type: String,
+    default: '',
+  },
   bio: {
     type: String,
     default: '',
   },
+  // The 'picture' field will now store the file path to the uploaded image
   picture: {
     type: String,
     default: '',
