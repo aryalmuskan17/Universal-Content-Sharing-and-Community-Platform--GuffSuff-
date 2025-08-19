@@ -3,17 +3,20 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
+import { ThemeContext } from '../context/ThemeContext';
+
+// Define the categories here. You can add more as needed.
+const categories = ['Sports', 'Technology', 'Science', 'Health', 'Business', 'Entertainment'];
 
 const CreateArticle = () => {
   const { t } = useTranslation();
-  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
+  const { isDarkMode } = useContext(ThemeContext);
 
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     tags: '',
-    category: '',
+    category: '', // The default will be an empty string, or you can set a default value from the categories array
     language: 'en',
   });
 
@@ -85,13 +88,11 @@ const CreateArticle = () => {
 
   return (
     <div className="flex justify-center items-center p-4">
-      {/* CHANGE: Add dark mode classes to the main container */}
       <div className="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg dark:bg-gray-900 transition-colors duration-300">
         <h1 className="text-3xl font-bold text-gray-800 text-center mb-6 dark:text-gray-100">{t('createArticle')}</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            {/* CHANGE: Add dark mode classes to labels and inputs */}
             <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('title')}
             </label>
@@ -125,7 +126,6 @@ const CreateArticle = () => {
             <label htmlFor="media" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('media')}
             </label>
-            {/* CHANGE: Add dark mode classes to the file input's pseudo-elements */}
             <input
               type="file"
               id="media"
@@ -154,14 +154,21 @@ const CreateArticle = () => {
             <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('category')}
             </label>
-            <input
-              type="text"
+            <select
               id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
+              required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-            />
+            >
+              <option value="" disabled>{t('selectCategory')}</option>
+              {categories.map((cat, index) => (
+                <option key={index} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
           </div>
           
           <div>
@@ -183,7 +190,6 @@ const CreateArticle = () => {
           <button
             type="submit"
             disabled={loading}
-            // CHANGE: Add dark mode class for the disabled state
             className="w-full py-3 px-4 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 dark:disabled:bg-gray-600"
           >
             {loading ? t('submitting') : t('submitArticle')}

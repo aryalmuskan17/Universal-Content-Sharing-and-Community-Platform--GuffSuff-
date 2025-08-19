@@ -1,20 +1,28 @@
-// client/src/pages/EditArticle.jsx (Styled Version with Dark Mode)
+// client/src/pages/EditArticle.jsx (Updated with Category Dropdown)
 
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
-import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
+import { ThemeContext } from '../context/ThemeContext';
 import { toast } from 'react-toastify';
+
+// Define the categories here, same as in CreateArticle.jsx
+const categories = ['Sports', 'Technology', 'Science', 'Health', 'Business', 'Entertainment'];
 
 const EditArticle = () => {
   const { articleId } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
+  const { isDarkMode } = useContext(ThemeContext);
 
-  const [article, setArticle] = useState({ title: '', content: '', status: '' });
+  const [article, setArticle] = useState({ 
+    title: '', 
+    content: '', 
+    status: '',
+    category: '' // NEW: Added category to the initial state
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
@@ -25,6 +33,7 @@ const EditArticle = () => {
         const response = await axios.get(`http://localhost:5001/api/articles/${articleId}`, {
           headers: { 'x-auth-token': token }
         });
+        // The API response will now include the category, which will be set here
         setArticle(response.data);
         setLoading(false);
       } catch (err) {
@@ -61,16 +70,13 @@ const EditArticle = () => {
   };
 
   if (loading) {
-    // CHANGE: Add dark mode text color
     return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loading')}...</div>;
   }
   if (error) {
-    // CHANGE: No dark mode needed for red text
     return <div className="text-center p-8 text-red-500 font-medium">{error}</div>;
   }
 
   return (
-    // CHANGE: Add dark mode classes to the main container
     <div className="bg-white p-6 rounded-xl shadow-lg my-8 max-w-4xl mx-auto dark:bg-gray-900 transition-colors duration-300">
       <h2 className="text-3xl font-bold text-gray-800 mb-6 dark:text-gray-100">{t('editArticle')}</h2>
       
@@ -82,7 +88,6 @@ const EditArticle = () => {
             name="title"
             value={article.title}
             onChange={handleEditChange}
-            // CHANGE: Add dark mode classes to the input
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             required
           />
@@ -93,19 +98,39 @@ const EditArticle = () => {
             name="content"
             value={article.content}
             onChange={handleEditChange}
-            // CHANGE: Add dark mode classes to the textarea
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             rows="10"
             required
           ></textarea>
         </div>
+        
+        {/* NEW: Category Dropdown */}
+        <div>
+          <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
+            {t('category')}
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={article.category}
+            onChange={handleEditChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+          >
+            <option value="" disabled>{t('selectCategory')}</option>
+            {categories.map((cat, index) => (
+              <option key={index} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+        
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('status')}</label>
           <select
             name="status"
             value={article.status}
             onChange={handleEditChange}
-            // CHANGE: Add dark mode classes to the select input
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
           >
             <option value="draft">{t('draft')}</option>
@@ -113,6 +138,7 @@ const EditArticle = () => {
             <option value="published">{t('published')}</option>
           </select>
         </div>
+        
         <button
           type="submit"
           className="w-full py-3 px-4 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

@@ -1,4 +1,4 @@
-// client/src/pages/ArticleList.jsx (Final Version with Dark Mode)
+// client/src/pages/ArticleList.jsx (Final Version with Dynamic Category Filters)
 
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
@@ -8,12 +8,15 @@ import ArticleCard from '../components/ArticleCard';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
-import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
+import { ThemeContext } from '../context/ThemeContext';
+
+// Define the categories here, same as in CreateArticle.jsx and EditArticle.jsx
+const categories = ['Sports', 'Technology', 'Science', 'Health', 'Business', 'Entertainment'];
 
 const ArticleList = () => {
   const { t } = useTranslation();
   const { user } = useContext(UserContext);
-  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Get isDarkMode state
+  const { isDarkMode } = useContext(ThemeContext);
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -82,42 +85,34 @@ const ArticleList = () => {
           placeholder={t('searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          // CHANGE: Add dark mode styles to the input
           className="w-full md:w-1/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
         />
         <div className="flex flex-wrap space-x-2">
-          <button 
-            onClick={() => handleFilterChange({ category: 'Sports' })} 
-            // CHANGE: Add dark mode styles to the button
-            className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
-          >
-            {t('sports')}
-          </button>
-          <button 
-            onClick={() => handleFilterChange({ category: 'Technology' })} 
-            // CHANGE: Add dark mode styles to the button
-            className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
-          >
-            {t('technology')}
-          </button>
+          {/* Dynamically generated buttons for categories */}
           <button 
             onClick={() => handleFilterChange({ category: '' })} 
-            // CHANGE: Add dark mode styles to the button
             className="py-2 px-4 rounded-lg font-medium text-sm transition-colors text-gray-600 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
           >
             {t('all')}
           </button>
+          {categories.map((cat, index) => (
+            <button 
+              key={index}
+              onClick={() => handleFilterChange({ category: cat })} 
+              className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
+            >
+              {cat}
+            </button>
+          ))}
         </div>
       </div>
       
-      {/* NEW: Sorting Dropdown */}
       <div className="flex justify-end mb-6">
         <label htmlFor="sort-by" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">{t('sortBy')}</label>
         <select 
           id="sort-by"
           value={sortBy} 
           onChange={(e) => setSortBy(e.target.value)}
-          // CHANGE: Add dark mode styles to the select dropdown
           className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
         >
           <option value="date">{t('newestFirst')}</option>
@@ -129,7 +124,6 @@ const ArticleList = () => {
         {articles.length > 0 ? (
           articles.map((article) => (
             <div key={article._id} className="relative">
-              {/* Note: The ArticleCard component itself will also need dark mode styling */}
               <ArticleCard article={article} onViewArticleClick={onViewArticleClick} />
               {user && article.author && user._id === article.author._id && (
                 <div className="absolute top-4 right-4 z-10">
