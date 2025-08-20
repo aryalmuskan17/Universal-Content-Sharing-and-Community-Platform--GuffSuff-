@@ -9,9 +9,9 @@ function auth(allowedRoles = []) {
     const token = req.header('x-auth-token'); 
     
     if (!token) {
-      console.log('No token found for request to', req.path, ', sending 401.'); 
-      return res.status(401).json({ error: 'No token' });
-    }
+  req.user = null;
+  return next();
+}
 
     try {
       const user = jwt.verify(token, secret);
@@ -29,9 +29,9 @@ function auth(allowedRoles = []) {
       next();
 
     } catch (e) {
-      console.log('Invalid token for request to', req.path, ', sending 401. Error:', e.message); 
-      res.status(401).json({ error: 'Invalid token' });
-    }
+  req.user = null;
+  next();
+}
   };
 }
 

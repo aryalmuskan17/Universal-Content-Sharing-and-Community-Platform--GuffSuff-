@@ -185,7 +185,6 @@ router.get('/:id', auth(), async (req, res) => {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
 
-    // NEW: Check if the article is private and if the user is authorized to view it
     const isPublic = article.status === 'published';
     const isAuthorized = req.user && (
       req.user.role === 'Admin' ||
