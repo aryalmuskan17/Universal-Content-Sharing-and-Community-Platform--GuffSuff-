@@ -1,5 +1,3 @@
-// client/src/components/PublisherAnalytics.jsx
-
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +12,7 @@ const PublisherAnalytics = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const { isDarkMode } = useContext(ThemeContext);
-  const [viewType, setViewType] = useState('all'); // NEW: State for current view
+  const [viewType, setViewType] = useState('all');
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -27,7 +25,6 @@ const PublisherAnalytics = () => {
         }
 
         let url = 'http://localhost:5001/api/articles/publisher/analytics';
-        // NEW: Add status query parameter if not "all"
         if (viewType && viewType !== 'all') {
             url += `?status=${viewType}`;
         }
@@ -48,7 +45,25 @@ const PublisherAnalytics = () => {
 
     fetchAnalytics();
     
-  }, [t, viewType]); // NEW: Re-fetch data when viewType changes
+  }, [t, viewType]);
+
+  const handleDeleteArticle = async (articleId, title) => {
+    if (window.confirm(`Are you sure you want to delete the article "${title}"? This cannot be undone.`)) {
+      const token = localStorage.getItem('token');
+      try {
+        await axios.delete(`http://localhost:5001/api/articles/${articleId}`, {
+          headers: {
+            'x-auth-token': token,
+          },
+        });
+        toast.success(`"${title}" has been deleted.`);
+        setArticles(articles.filter(article => article._id !== articleId));
+      } catch (err) {
+        toast.error('Failed to delete the article.');
+        console.error(err);
+      }
+    }
+  };
 
   if (loading) {
     return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingAnalytics')}</div>;
@@ -63,7 +78,6 @@ const PublisherAnalytics = () => {
     <div className="bg-white p-6 rounded-xl shadow-lg my-8 dark:bg-gray-900 transition-colors duration-300">
       <h2 className="text-3xl font-bold text-gray-800 mb-8 dark:text-gray-100">{t('yourArticlePerformance')}</h2>
 
-      {/* NEW: Tabbed Navigation */}
       <div className="flex mb-6 space-x-2 sm:space-x-4">
           <button
               onClick={() => setViewType('all')}
@@ -101,7 +115,6 @@ const PublisherAnalytics = () => {
 
       {articles.length > 0 ? (
         <>
-          {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-8">
             <div className="bg-gray-50 p-6 rounded-lg shadow flex items-center space-x-4 dark:bg-gray-800 dark:shadow-md">
               <FaEye className="text-4xl text-indigo-500 dark:text-indigo-400" />
@@ -133,7 +146,6 @@ const PublisherAnalytics = () => {
             </div>
           </div>
           
-          {/* Detailed Table */}
           <div className="overflow-x-auto rounded-lg shadow-md dark:shadow-none">
             <table className="min-w-full leading-normal">
               <thead>
@@ -144,6 +156,7 @@ const PublisherAnalytics = () => {
                   <th className="py-3 px-6 text-center">{t('likes')}</th>
                   <th className="py-3 px-6 text-center">{t('shares')}</th>
                   <th className="py-3 px-6 text-center">{t('comments')}</th>
+                  <th className="py-3 px-6 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -176,6 +189,26 @@ const PublisherAnalytics = () => {
                       <Link to={`/article/${article._id}`} className="text-indigo-600 hover:text-indigo-900 transition-colors dark:text-indigo-400 dark:hover:text-indigo-300">
                           {article.commentCount}
                       </Link>
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                        {/* NEW: Container for the buttons */}
+                        <div className="flex justify-center space-x-2">
+                            {/* NEW: Edit button */}
+                            <Link 
+                                to={`/edit-article/${article._id}`}
+                                className="py-2 px-4 text-sm font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
+                            >
+                                Edit
+                            </Link>
+
+                            {/* Delete button */}
+                            <button
+                                onClick={() => handleDeleteArticle(article._id, article.title)}
+                                className="py-2 px-4 text-sm font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </td>
                   </tr>
                 ))}

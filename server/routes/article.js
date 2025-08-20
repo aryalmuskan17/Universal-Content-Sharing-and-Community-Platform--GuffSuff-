@@ -454,4 +454,31 @@ router.patch('/:id/status', auth(['Admin']), async (req, res) => {
   }
 });
 
+// DELETE route to delete an article by ID
+router.delete('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+
+    if (!article) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+
+    // Check if the user is the author or an admin
+    if (req.user.role !== 'Admin' && article.author.toString() !== req.user.id) {
+      return res.status(401).json({ success: false, message: 'Not authorized to delete this article' });
+    }
+
+    // Delete associated comments and notifications first to avoid orphaned data
+    await Comment.deleteMany({ article: req.params.id });
+    await Notification.deleteMany({ article: req.params.id });
+
+    // Now, delete the article
+    await article.deleteOne();
+
+    res.status(200).json({ success: true, message: 'Article and related data deleted successfully' });
+  } catch (err) {
+    console.error('An error occurred deleting the article:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 module.exports = router;
