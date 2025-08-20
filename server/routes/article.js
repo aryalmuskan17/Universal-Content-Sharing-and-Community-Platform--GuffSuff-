@@ -324,10 +324,17 @@ router.patch('/:id/share', auth(), async (req, res) => {
   }
 });
 
+// Corrected GET /publisher/analytics Route
 router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
-    let matchStage = {};
-    matchStage = { author: new mongoose.Types.ObjectId(req.user.id) };
+    let matchStage = { 
+        author: new mongoose.Types.ObjectId(req.user.id) 
+    };
+
+    // NEW: Add a status filter if one is provided in the query
+    if (req.query.status) {
+        matchStage.status = req.query.status;
+    }
     
     const analytics = await Article.aggregate([
       { $match: matchStage },
