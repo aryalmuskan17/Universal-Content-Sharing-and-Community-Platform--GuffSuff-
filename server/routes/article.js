@@ -175,15 +175,27 @@ router.get('/pending', auth(['Admin']), async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', auth(), async (req, res) => {
   try {
     const article = await Article.findById(req.params.id)
       .populate('author')
       .select('+mediaUrl');
-      
+
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
+
+    // NEW: Check if the article is private and if the user is authorized to view it
+    const isPublic = article.status === 'published';
+    const isAuthorized = req.user && (
+      req.user.role === 'Admin' ||
+      article.author._id.toString() === req.user.id.toString()
+    );
+
+    if (!isPublic && !isAuthorized) {
+      return res.status(403).json({ success: false, message: 'Not authorized to view this article' });
+    }
+
     res.status(200).json(article);
   } catch (error) {
     console.error('An error occurred getting a single article:', error);

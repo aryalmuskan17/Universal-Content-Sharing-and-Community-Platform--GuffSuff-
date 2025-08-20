@@ -84,9 +84,11 @@ const NotificationBell = () => {
       case 'comment':
       case 'share':
       case 'publish':
+      case 'reject': // NEW: Add 'reject' here
         return articleId ? `/article/${articleId}` : '#';
       case 'review':
-        return '/admin-dashboard';
+        // For Admin to review a pending article
+        return articleId ? `/article/${articleId}` : '/admin-dashboard';
       default:
         return '#';
     }
