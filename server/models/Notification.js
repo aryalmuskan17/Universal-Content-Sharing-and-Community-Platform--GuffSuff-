@@ -22,7 +22,7 @@ const notificationSchema = new mongoose.Schema({
   type: {
     type: String,
     // Add 'review' to the list of valid enum values
-    enum: ['like', 'share', 'comment', 'subscribe', 'publish', 'review'], 
+    enum: ['like', 'share', 'comment', 'subscribe', 'publish', 'review', 'reject'], 
     required: true,
   },
   message: {

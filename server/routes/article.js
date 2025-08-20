@@ -7,6 +7,7 @@ const auth = require('../middleware/auth');
 const User = require('../models/User'); 
 const Notification = require('../models/Notification');
 const multer = require('multer');
+const { check, validationResult } = require('express-validator');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -41,23 +42,8 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
     }
 
     const article = await Article.create(articleData);
-
-    const publisher = await User.findById(req.user.id);
-    if (publisher) { 
-        const subscribers = await User.find({ subscriptions: publisher._id });
-        const notificationPromises = subscribers.map(subscriber => {
-          const message = `${publisher.name || publisher.username} has published a new article: "${article.title}"`;
-          return Notification.create({
-            user: subscriber._id,
-            fromUser: publisher._id, 
-            type: 'publish', 
-            article: article._id,
-            message,
-          });
-        });
-        await Promise.all(notificationPromises);
-    }
     
+    // NEW: Only send notification to admins for review
     if (articleData.status === 'pending') {
         const fromUser = await User.findById(req.user.id);
         if (!fromUser) {
@@ -92,8 +78,14 @@ router.get('/', async (req, res) => {
 
     if (req.user?.role === 'Admin') {
       matchQuery = {};
+      if (req.query.status) {
+        matchQuery.status = req.query.status;
+      }
     } else if (req.user?.role === 'Publisher') {
-      matchQuery = { author: req.user.id };
+      matchQuery = { author: new mongoose.Types.ObjectId(req.user.id) };
+      if (req.query.status) {
+        matchQuery.status = req.query.status;
+      }
     }
 
     if (req.query.category) {
@@ -324,14 +316,12 @@ router.patch('/:id/share', auth(), async (req, res) => {
   }
 });
 
-// Corrected GET /publisher/analytics Route
 router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
     let matchStage = { 
         author: new mongoose.Types.ObjectId(req.user.id) 
     };
 
-    // NEW: Add a status filter if one is provided in the query
     if (req.query.status) {
         matchStage.status = req.query.status;
     }
@@ -419,19 +409,30 @@ router.patch('/:id/status', auth(['Admin']), async (req, res) => {
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
-
-    if (status === 'published') {
-      const publisher = await User.findById(article.author);
-      const admin = await User.findById(req.user.id);
-      if (publisher && admin) {
-        await Notification.create({
-          user: publisher._id,
-          fromUser: admin._id,
-          article: article._id,
-          type: 'publish',
-          message: `Your article "${article.title}" has been approved and published by an admin.`,
-        });
-      }
+    
+    // Check if a notification should be sent based on status change
+    const publisher = await User.findById(article.author);
+    const admin = await User.findById(req.user.id);
+    
+    if (publisher && admin) {
+        if (status === 'published') {
+            await Notification.create({
+                user: publisher._id,
+                fromUser: admin._id,
+                article: article._id,
+                type: 'publish',
+                message: `Your article "${article.title}" has been approved and published by an admin.`,
+            });
+        } else if (status === 'rejected') {
+            // NEW: Notify the publisher that their article was rejected
+            await Notification.create({
+                user: publisher._id,
+                fromUser: admin._id,
+                article: article._id,
+                type: 'reject', // A new type for rejection notifications
+                message: `Your article "${article.title}" has been rejected by an admin.`,
+            });
+        }
     }
 
     res.status(200).json({ success: true, data: article });
