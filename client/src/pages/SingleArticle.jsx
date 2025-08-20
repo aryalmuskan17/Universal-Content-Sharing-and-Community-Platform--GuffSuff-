@@ -4,11 +4,11 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom'; // CHANGE: Added Link
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft } from 'react-icons/fa';
 import { UserContext } from '../context/UserContext';
-import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
+import { ThemeContext } from '../context/ThemeContext';
 import SubscribeButton from '../components/SubscribeButton';
 import CommentSection from '../components/CommentSection';
 
@@ -20,7 +20,7 @@ const SingleArticle = () => {
   const isViewIncremented = useRef(false);
   const { t } = useTranslation();
   const { user } = useContext(UserContext);
-  const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
+  const { isDarkMode } = useContext(ThemeContext);
 
   const isLiked = user && article?.likedBy?.includes(user._id);
 
@@ -158,21 +158,17 @@ const SingleArticle = () => {
   const handleReject = () => handleStatusChange('rejected');
 
   if (loading) {
-    // CHANGE: Add dark mode text color
     return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingArticle')}</div>;
   }
 
   if (!article) {
-    // CHANGE: No dark mode needed for red text
     return <div className="text-center p-8 text-xl font-medium text-red-500">{t('articleNotFound')}</div>;
   }
   
   return (
-    // CHANGE: Add dark mode classes to the main container
     <div className="max-w-4xl mx-auto p-4 md:p-8 bg-white shadow-xl rounded-2xl my-8 dark:bg-gray-900 transition-colors duration-300">
       <button 
         onClick={() => navigate(-1)} 
-        // CHANGE: Add dark mode classes to the back button
         className="mb-6 flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
       >
         <FaArrowLeft />
@@ -202,6 +198,17 @@ const SingleArticle = () => {
           >
             Share
           </button>
+          
+          {/* NEW: Edit button for the author */}
+          {article.author && user && user._id === article.author._id && (
+            <Link 
+              to={`/edit-article/${articleId}`}
+              className="py-2 px-4 text-sm font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
+            >
+              Edit Article
+            </Link>
+          )}
+
           {article.author && user?._id !== article.author._id && article.author.role !== 'Admin' && (
             <SubscribeButton publisherId={article.author._id} />
           )}
@@ -243,10 +250,8 @@ const SingleArticle = () => {
           </div>
       )}
       
-      {/* CHANGE: Add dark mode classes to the prose content */}
       <div className="prose prose-lg max-w-none text-gray-700 dark:prose-invert dark:text-gray-300" dangerouslySetInnerHTML={{ __html: article.content }}></div>
       
-      {/* CHANGE: Add dark mode classes to the info section */}
       <div className="mt-10 flex flex-wrap gap-6 items-center text-gray-600 text-lg font-semibold dark:text-gray-400">
         <div className="flex items-center space-x-2">
             <span>{article.views || 0}</span>
