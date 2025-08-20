@@ -7,6 +7,7 @@ import { UserContext } from '../context/UserContext';
 import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
 import { toast } from 'react-toastify';
 import { FaCheckCircle, FaTimesCircle, FaEye, FaUndo } from 'react-icons/fa';
+import { Link } from 'react-router-dom'; // NEW: Import Link for clickable titles
 
 const FullAdminDashboard = () => {
   const [allArticles, setAllArticles] = useState([]);
@@ -112,7 +113,10 @@ const FullAdminDashboard = () => {
                 // CHANGE: Add dark mode classes to table rows
                 <tr key={article._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors dark:border-gray-700 dark:hover:bg-gray-800">
                   <td className="py-4 px-6 text-left whitespace-nowrap">
-                    <span className="font-medium text-gray-700 dark:text-gray-200">{article.title}</span>
+                    {/* CHANGE: Make the title clickable with <Link> */}
+                    <Link to={`/article/${article._id}`} className="font-medium text-indigo-600 hover:text-indigo-900 transition-colors dark:text-indigo-400 dark:hover:text-indigo-200">
+                      {article.title}
+                    </Link>
                   </td>
                   <td className="py-4 px-6 text-left text-gray-700 dark:text-gray-200">
                     <span>{article.author?.username}</span>
