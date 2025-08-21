@@ -393,6 +393,8 @@ router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res
   }
 });
 
+// server/routes/articles.js (Corrected 'update article' route)
+
 router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
   try {
     const article = await Article.findById(req.params.id).select('+mediaUrl');
@@ -404,10 +406,18 @@ router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
     if (article.author.toString() !== req.user.id) {
       return res.status(401).json({ success: false, message: 'Not authorized to update this article' });
     }
+    
+    let updateData = { ...req.body, updatedAt: Date.now() };
+
+    if (req.user.role === 'Publisher' && req.body.status) {
+       
+        delete updateData.status;
+        console.log(`Publisher ${req.user.id} attempted to change article status. Action blocked.`);
+    }
 
     const updatedArticle = await Article.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, updatedAt: Date.now() },
+      updateData,
       { new: true, runValidators: true }
     ).select('+mediaUrl');
 
@@ -437,6 +447,7 @@ router.patch('/:id/status', auth(['Admin']), async (req, res) => {
     
     if (publisher && admin) {
         if (status === 'published') {
+            // Notify the article's publisher
             await Notification.create({
                 user: publisher._id,
                 fromUser: admin._id,
@@ -444,13 +455,27 @@ router.patch('/:id/status', auth(['Admin']), async (req, res) => {
                 type: 'publish',
                 message: `Your article "${article.title}" has been approved and published by an admin.`,
             });
+            
+            // NEW: Logic to notify all readers
+            const readers = await User.find({ role: 'Reader' });
+            if (readers.length > 0) {
+                const readerNotificationPromises = readers.map(reader => {
+                    return Notification.create({
+                        user: reader._id,
+                        fromUser: admin._id,
+                        article: article._id,
+                        type: 'new_article', // A new type for readers
+                        message: `A new article has been published: "${article.title}"`,
+                    });
+                });
+                await Promise.all(readerNotificationPromises);
+            }
         } else if (status === 'rejected') {
-            // NEW: Notify the publisher that their article was rejected
             await Notification.create({
                 user: publisher._id,
                 fromUser: admin._id,
                 article: article._id,
-                type: 'reject', // A new type for rejection notifications
+                type: 'reject',
                 message: `Your article "${article.title}" has been rejected by an admin.`,
             });
         }

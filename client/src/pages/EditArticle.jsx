@@ -1,4 +1,4 @@
-// client/src/pages/EditArticle.jsx (Updated with Category Dropdown)
+// client/src/pages/EditArticle.jsx (Final and Corrected)
 
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
@@ -8,7 +8,6 @@ import { UserContext } from '../context/UserContext';
 import { ThemeContext } from '../context/ThemeContext';
 import { toast } from 'react-toastify';
 
-// Define the categories here, same as in CreateArticle.jsx
 const categories = ['Sports', 'Technology', 'Science', 'Health', 'Business', 'Entertainment'];
 
 const EditArticle = () => {
@@ -16,12 +15,13 @@ const EditArticle = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isDarkMode } = useContext(ThemeContext);
+  const { user } = useContext(UserContext); // Get the user object from context
 
   const [article, setArticle] = useState({ 
     title: '', 
     content: '', 
     status: '',
-    category: '' // NEW: Added category to the initial state
+    category: ''
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,7 +33,6 @@ const EditArticle = () => {
         const response = await axios.get(`http://localhost:5001/api/articles/${articleId}`, {
           headers: { 'x-auth-token': token }
         });
-        // The API response will now include the category, which will be set here
         setArticle(response.data);
         setLoading(false);
       } catch (err) {
@@ -57,11 +56,21 @@ const EditArticle = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5001/api/articles/${articleId}`, article, {
+      const originalStatus = article.status;
+      
+      const response = await axios.put(`http://localhost:5001/api/articles/${articleId}`, article, {
         headers: { 'x-auth-token': token }
       });
-      toast.success('Article updated successfully!');
-      navigate('/');
+
+      setArticle(response.data.data);
+
+      const newStatus = response.data.data.status;
+      if (originalStatus !== newStatus) {
+        toast.success(`Article status updated to: ${newStatus}`);
+      } else {
+        toast.success('Article updated successfully!');
+      }
+
     } catch (err) {
       console.error('Failed to update article:', err);
       setError('Failed to update article.');
@@ -104,7 +113,6 @@ const EditArticle = () => {
           ></textarea>
         </div>
         
-        {/* NEW: Category Dropdown */}
         <div>
           <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
             {t('category')}
@@ -125,19 +133,22 @@ const EditArticle = () => {
           </select>
         </div>
         
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('status')}</label>
-          <select
-            name="status"
-            value={article.status}
-            onChange={handleEditChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-          >
-            <option value="draft">{t('draft')}</option>
-            <option value="pending">{t('pending')}</option>
-            <option value="published">{t('published')}</option>
-          </select>
-        </div>
+        {/* CRITICAL FIX: Conditionally render the status dropdown */}
+        {user && user.role === 'Admin' && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('status')}</label>
+            <select
+              name="status"
+              value={article.status}
+              onChange={handleEditChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            >
+              <option value="draft">{t('draft')}</option>
+              <option value="pending">{t('pending')}</option>
+              <option value="published">{t('published')}</option>
+            </select>
+          </div>
+        )}
         
         <button
           type="submit"
