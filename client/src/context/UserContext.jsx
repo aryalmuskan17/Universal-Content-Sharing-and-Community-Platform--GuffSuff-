@@ -9,42 +9,18 @@ const UserProvider = ({ children }) => {
   const [auth, setAuth] = useState(() => {
     // Read from localStorage on initial load
     const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
     return {
       token: token || null,
-      user: user ? JSON.parse(user) : null
+      user: null // User will be fetched in useEffect
     };
   });
 
-  const isAuthenticated = !!auth.user;
+  const isAuthenticated = !!auth.token;
 
-  // Use useEffect to set up the default axios header and verify token on initial load
-  useEffect(() => {
-    if (auth.token) {
-      axios.defaults.headers.common['x-auth-token'] = auth.token;
-      // This part ensures the token is still valid.
-      // If it fails, the user will be logged out.
-      const fetchUserProfile = async () => {
-        try {
-          const res = await axios.get('http://localhost:5001/api/auth/profile');
-          // This prevents an empty user from being set if localStorage had a valid token but no user data
-          setAuth(prevAuth => ({ ...prevAuth, user: res.data }));
-        } catch (error) {
-          console.error("Failed to fetch user profile:", error);
-          logout();
-        }
-      };
-      fetchUserProfile();
-    } else {
-      delete axios.defaults.headers.common['x-auth-token'];
-    }
-  }, []); // Empty dependency array means this runs only once on mount
-
-  const login = (newToken, newUser) => {
+  // This function logs the user in and updates state and localStorage
+  const login = (newToken) => {
     localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    axios.defaults.headers.common['x-auth-token'] = newToken;
-    setAuth({ token: newToken, user: newUser });
+    setAuth(prevAuth => ({ ...prevAuth, token: newToken }));
   };
 
   const logout = () => {
@@ -55,10 +31,39 @@ const UserProvider = ({ children }) => {
   };
 
   const updateUserContext = (updates) => {
-    setAuth(prevAuth => ({ ...prevAuth, user: { ...prevAuth.user, ...updates } }));
-    // Update local storage to persist the user data changes
-    localStorage.setItem('user', JSON.stringify({ ...auth.user, ...updates }));
+    setAuth(prevAuth => {
+        const newUser = { ...prevAuth.user, ...updates };
+        localStorage.setItem('user', JSON.stringify(newUser));
+        return { ...prevAuth, user: newUser };
+    });
   };
+
+  // CORRECTED: useEffect now runs whenever the token state changes
+  useEffect(() => {
+    if (auth.token) {
+      axios.defaults.headers.common['x-auth-token'] = auth.token;
+      
+      const fetchUserProfile = async () => {
+        try {
+          const res = await axios.get('http://localhost:5001/api/auth/profile');
+          setAuth(prevAuth => ({ ...prevAuth, user: res.data }));
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+          logout();
+        }
+      };
+      
+      // Check for a user in localStorage first to prevent a brief blank state
+      const userFromLocalStorage = localStorage.getItem('user');
+      if (userFromLocalStorage) {
+          setAuth(prevAuth => ({ ...prevAuth, user: JSON.parse(userFromLocalStorage) }));
+      }
+      
+      fetchUserProfile();
+    } else {
+      delete axios.defaults.headers.common['x-auth-token'];
+    }
+  }, [auth.token]); // <-- CRITICAL FIX: The dependency array now watches 'auth.token'
 
   return (
     <UserContext.Provider value={{ token: auth.token, user: auth.user, isAuthenticated, login, logout, updateUserContext }}>

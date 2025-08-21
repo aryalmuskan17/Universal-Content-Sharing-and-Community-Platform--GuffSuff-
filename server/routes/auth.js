@@ -1,4 +1,4 @@
-// server/routes/auth.js (Final Corrected Version with Password Change)
+// server/routes/auth.js (Final and Complete Merged Version with Google Redirect Fix)
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
@@ -8,6 +8,117 @@ const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
 const router = express.Router();
+
+// ------------------------------------------
+// Passport.js Imports and Setup
+// ------------------------------------------
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const session = require('express-session');
+
+router.use(session({
+  secret: process.env.SESSION_SECRET || 'a_very_secret_key', 
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // Set to true in production with HTTPS
+}));
+
+router.use(passport.initialize());
+router.use(passport.session());
+
+// Passport Google Strategy configuration
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:5001/api/auth/google/callback"
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      let user = await User.findOne({ googleId: profile.id });
+      
+      if (!user) {
+        // CORRECTED: For new users, do NOT save yet.
+        // Instead, return a temporary user object with a flag.
+        user = {
+          googleId: profile.id,
+          username: profile.displayName,
+          email: profile.emails[0].value,
+          isNewUser: true, // This flag signals that it's a new user
+        };
+        return done(null, user);
+      }
+      
+      // For existing users, return the user object
+      done(null, user);
+      
+    } catch (err) {
+      done(err, null);
+    }
+  }
+));
+
+// Serialize and Deserialize user for session management
+passport.serializeUser((user, done) => {
+  // Check for the isNewUser flag before serializing
+  if (user.isNewUser) {
+    // If it's a new user, we don't have an ID yet. Serialize the temporary object.
+    done(null, user);
+  } else {
+    // If it's an existing user, serialize the ID as normal.
+    done(null, user.id);
+  }
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    // If the ID is a temporary object (from a new user), don't try to find it.
+    if (typeof id === 'object' && id.isNewUser) {
+      return done(null, id);
+    }
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
+});
+
+// ------------------------------------------
+// END OF PASSPORT.JS SETUP
+// ------------------------------------------
+
+// ------------------------------------------
+// CORRECTED GOOGLE AUTHENTICATION ROUTES
+// ------------------------------------------
+
+const CLIENT_URL_DEV = "http://localhost:5173"; // Your frontend URL
+
+// Route to initiate Google authentication
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// Route for Google's callback
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: `${CLIENT_URL_DEV}/login` }),
+  (req, res) => {
+    // CORRECTED: This logic now handles both new and existing users
+    const user = req.user;
+    
+    if (user.isNewUser) {
+      // NEW USER: Redirect to registration page with user details in the URL
+      const redirectUrl = `${CLIENT_URL_DEV}/register?googleId=${user.googleId}&username=${encodeURIComponent(user.username)}&email=${encodeURIComponent(user.email)}`;
+      return res.redirect(redirectUrl);
+    }
+    
+    // EXISTING USER: Create a token and redirect to the login success page
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.redirect(`${CLIENT_URL_DEV}/login-success?token=${token}`);
+  }
+);
+
+// ------------------------------------------
+// END OF CORRECTED GOOGLE AUTHENTICATION ROUTES
+// ------------------------------------------
+
 
 // Corrected Middleware to verify JWT token and get user info
 const protect = (req, res, next) => {
@@ -211,21 +322,39 @@ router.put('/profile/unsubscribe/:publisherId', protect, async (req, res) => {
   }
 });
 
-// Registration route
+// CORRECTED: The registration route now handles googleId
 router.post('/register', async (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, email, password, role, googleId } = req.body; // <-- ADDED 'googleId'
   if (!username || !password) {
     return res.status(400).json({ message: 'Username and password are required.' });
   }
 
   try {
-    const existingUser = await User.findOne({ username });
+    // Check if a user with that username or email already exists
+    const existingUser = await User.findOne({ 
+      $or: [{ username }, { email }]
+    });
+
+    // Check for existing users to avoid duplicates
     if (existingUser) {
-      return res.status(409).json({ message: 'Username already exists. Please choose a different one.' });
+      if (existingUser.username === username) {
+        return res.status(409).json({ message: 'Username already exists. Please choose a different one.' });
+      }
+      if (existingUser.email === email) {
+        return res.status(409).json({ message: 'Email already exists. Please use the login page to sign in.' });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, password: hashedPassword, role });
+
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+      role,
+      googleId // <-- ADDED googleId here to link the accounts
+    });
+    
     await newUser.save();
 
     const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '1h' });

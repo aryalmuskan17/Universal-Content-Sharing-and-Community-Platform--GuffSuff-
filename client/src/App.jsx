@@ -26,6 +26,9 @@ import EditArticle from './pages/EditArticle.jsx';
 import PublisherAnalytics from './components/PublisherAnalytics.jsx';
 import SingleArticle from './pages/SingleArticle.jsx';
 
+// NEW: Import the LoginSuccess component
+import LoginSuccess from './pages/LoginSuccess.jsx';
+
 function App() {
   return (
     // CHANGE: Wrap the entire application with the ThemeProvider and UserProvider
@@ -36,6 +39,8 @@ function App() {
             {/* Public Routes without Layout */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            {/* NEW: Route to handle the Google login redirect */}
+            <Route path="/login-success" element={<LoginSuccess />} />
 
             {/* Public and Protected Routes that share the common Layout */}
             <Route element={<Layout />}>

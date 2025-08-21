@@ -10,6 +10,9 @@ import { useTranslation } from 'react-i18next';
 // NEW: Import your logo image. Please update the path.
 import Logo from './assets/logo.png'; 
 
+// NEW: Import the GoogleLoginButton component
+import GoogleLoginButton from './components/GoogleLoginButton'; 
+
 const Login = () => {
   const { t } = useTranslation();
   const [username, setUsername] = useState('');
@@ -88,6 +91,12 @@ const Login = () => {
             {t('login')}
           </button>
         </form>
+        
+        {/* NEW: Add the Google login button */}
+        <div className="mt-4">
+          <GoogleLoginButton />
+        </div>
+
         <div className="mt-6 text-center text-gray-600 dark:text-gray-400">
           {t('noAccount')}
           <Link to="/register" className="text-indigo-600 hover:underline ml-1">
