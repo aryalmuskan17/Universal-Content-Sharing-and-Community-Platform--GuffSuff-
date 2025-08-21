@@ -5,13 +5,15 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { FaTrashAlt } from 'react-icons/fa';
-import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
+import { ThemeContext } from '../context/ThemeContext';
+import { UserContext } from '../context/UserContext'; // ADDED: Import UserContext
 
 const UserManagement = () => {
     const { t } = useTranslation();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { isDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
+    const { isDarkMode } = useContext(ThemeContext);
+    const { user } = useContext(UserContext); // ADDED: Get the logged-in user from context
 
     const fetchUsers = async () => {
         try {
@@ -63,18 +65,15 @@ const UserManagement = () => {
     };
 
     if (loading) {
-        // CHANGE: Add dark mode text color
         return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingUsers')}</div>;
     }
 
     return (
-        // CHANGE: Add dark mode classes to the main container
         <div className="bg-white p-6 rounded-xl shadow-lg my-8 dark:bg-gray-900 transition-colors duration-300">
             <h2 className="text-3xl font-bold text-gray-800 mb-6 dark:text-gray-100">{t('manageUsers')}</h2>
             <div className="overflow-x-auto rounded-lg">
                 <table className="min-w-full leading-normal">
                     <thead>
-                        {/* CHANGE: Add dark mode classes to the table header */}
                         <tr className="text-gray-600 uppercase text-sm font-semibold bg-gray-50 border-b-2 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
                             <th className="py-3 px-6 text-left">{t('username')}</th>
                             <th className="py-3 px-6 text-left">{t('role')}</th>
@@ -82,18 +81,18 @@ const UserManagement = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map(user => (
-                            // CHANGE: Add dark mode classes to table rows
-                            <tr key={user._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors dark:border-gray-700 dark:hover:bg-gray-800">
+                        {users.map(userItem => (
+                            <tr key={userItem._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors dark:border-gray-700 dark:hover:bg-gray-800">
                                 <td className="py-4 px-6 text-left text-gray-700 font-medium whitespace-nowrap dark:text-gray-200">
-                                  {user.username}
+                                  {userItem.username}
                                 </td>
                                 <td className="py-4 px-6 text-left">
                                     <select
-                                        value={user.role}
-                                        onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                                        // CHANGE: Add dark mode classes to the select input
+                                        value={userItem.role}
+                                        onChange={(e) => handleRoleChange(userItem._id, e.target.value)}
                                         className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                                        // CHANGED: Prevent an admin from demoting themselves
+                                        disabled={user && user._id === userItem._id}
                                     >
                                         <option value="Admin">{t('admin')}</option>
                                         <option value="Publisher">{t('publisher')}</option>
@@ -102,8 +101,10 @@ const UserManagement = () => {
                                 </td>
                                 <td className="py-4 px-6 text-center">
                                     <button
-                                        onClick={() => handleDeleteUser(user._id)}
+                                        onClick={() => handleDeleteUser(userItem._id)}
                                         className="bg-red-500 text-white p-2 rounded-full text-xs hover:bg-red-600 transition-colors"
+                                        // CHANGED: Prevent an admin from deleting themselves
+                                        disabled={user && user._id === userItem._id}
                                     >
                                         <FaTrashAlt />
                                     </button>
