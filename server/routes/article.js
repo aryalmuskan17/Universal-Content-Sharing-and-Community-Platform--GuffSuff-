@@ -403,16 +403,38 @@ router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
 
-    if (article.author.toString() !== req.user.id) {
+    // Security check: only the author or an Admin can edit.
+    // Admins can edit any article, so we skip the check for them.
+    if (req.user.role !== 'Admin' && article.author.toString() !== req.user.id) {
       return res.status(401).json({ success: false, message: 'Not authorized to update this article' });
     }
     
     let updateData = { ...req.body, updatedAt: Date.now() };
 
-    if (req.user.role === 'Publisher' && req.body.status) {
-       
+    // Publishers cannot manually change status, and if they edit a published article,
+    // we must change its status to 'pending' for re-review.
+    if (req.user.role === 'Publisher') {
+        // Prevent publisher from manually setting status
         delete updateData.status;
-        console.log(`Publisher ${req.user.id} attempted to change article status. Action blocked.`);
+
+        // NEW LOGIC: If a published article is being edited, revert its status to 'pending'
+        if (article.status === 'published') {
+            updateData.status = 'pending';
+            
+            // Send a notification to admins for review of the revised article
+            const fromUser = await User.findById(req.user.id);
+            const admins = await User.find({ role: 'Admin' });
+            const adminNotificationPromises = admins.map(admin => {
+                return Notification.create({
+                    user: admin._id,
+                    fromUser: fromUser._id, 
+                    article: article._id,
+                    type: 'review', // Use the 'review' type
+                    message: `${fromUser.name || fromUser.username} has revised a published article: "${article.title}"`,
+                });
+            });
+            await Promise.all(adminNotificationPromises);
+        }
     }
 
     const updatedArticle = await Article.findByIdAndUpdate(
