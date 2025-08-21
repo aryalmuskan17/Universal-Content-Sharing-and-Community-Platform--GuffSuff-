@@ -16,9 +16,6 @@ function auth(allowedRoles = []) {
     try {
       const user = jwt.verify(token, secret);
       
-      // NEW DIAGNOSTIC LOG: This will show us what role the server is reading
-      console.log(`Accessing route ${req.path}. User role from token: ${user.role}, User ID: ${user.id}`);
-      
       // Check if roles are required and if the user's role is allowed
       if (Array.isArray(allowedRoles) && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
         console.log('User role', user.role, 'not allowed for request to', req.path, ', sending 403.'); 

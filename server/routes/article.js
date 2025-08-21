@@ -211,15 +211,25 @@ router.patch('/:id/view', auth(), async (req, res) => {
             return res.status(401).json({ success: false, message: 'Not authorized to increment views' });
         }
         
-        const article = await Article.findByIdAndUpdate(
+        // Find the article to check the author
+        const article = await Article.findById(req.params.id);
+        if (!article) {
+            return res.status(404).json({ success: false, message: 'Article not found' });
+        }
+        
+        // NEW: Check if the viewer is the author
+        if (article.author.toString() === req.user.id.toString()) {
+            return res.status(200).json({ success: true, message: 'Author view not counted', data: article });
+        }
+        
+        // If not the author, increment the view count
+        const updatedArticle = await Article.findByIdAndUpdate(
             req.params.id,
             { $inc: { views: 1 } },
             { new: true, runValidators: true }
         ).select('+mediaUrl');
-        if (!article) {
-            return res.status(404).json({ success: false, message: 'Article not found' });
-        }
-        res.status(200).json({ success: true, data: article });
+
+        res.status(200).json({ success: true, data: updatedArticle });
     } catch (err) {
         console.error('An error occurred in the view route:', err);
         res.status(400).json({ success: false, error: err.message });
