@@ -409,13 +409,20 @@ router.get('/users', protect, async (req, res) => {
   }
 });
 
-// Route to update a user's role (Admin only)
+// Route to update a user's role (Admin only, with super-admin protection)
 router.put('/users/:id', protect, async (req, res) => {
   if (req.user.role !== 'Admin') {
     return res.status(403).json({ message: 'Access denied. Admin only.' });
   }
+  
   const { id } = req.params;
   const { role } = req.body;
+
+  // NEW: Super-admin protection check
+  if (id.toString() === process.env.MAIN_ADMIN_ID) {
+    return res.status(403).json({ message: 'Access denied. The role of the main admin cannot be changed.' });
+  }
+
   try {
     const updatedUser = await User.findByIdAndUpdate(id, { role }, { new: true });
     if (!updatedUser) {
@@ -428,12 +435,18 @@ router.put('/users/:id', protect, async (req, res) => {
   }
 });
 
-// Route to delete a user (Admin only)
+// Route to delete a user (Admin only, with super-admin protection)
 router.delete('/users/:id', protect, async (req, res) => {
   if (req.user.role !== 'Admin') {
     return res.status(403).json({ message: 'Access denied. Admin only.' });
   }
   const { id } = req.params;
+
+  // NEW: Super-admin protection check
+  if (id.toString() === process.env.MAIN_ADMIN_ID) {
+    return res.status(403).json({ message: 'Access denied. The main admin account cannot be deleted.' });
+  }
+  
   try {
     const deletedUser = await User.findByIdAndDelete(id);
     if (!deletedUser) {
