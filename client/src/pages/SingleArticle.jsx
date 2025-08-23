@@ -11,6 +11,7 @@ import { UserContext } from '../context/UserContext';
 import { ThemeContext } from '../context/ThemeContext';
 import SubscribeButton from '../components/SubscribeButton';
 import CommentSection from '../components/CommentSection';
+import PayButton from '../components/PayButton';
 
 const SingleArticle = () => {
   const { articleId } = useParams();
@@ -209,7 +210,19 @@ const SingleArticle = () => {
             </Link>
           )}
 
-          {article.author && user?._id !== article.author._id && article.author.role !== 'Admin' && (
+          {/* NEW: Pay Button for readers */}
+          {user && user._id !== article.author._id && user.role === 'Reader' && (
+              <PayButton
+                  amount={100} // Example: A fixed amount to pay
+                  purpose="publisher_payment"
+                  publisherId={article.author._id}
+                  articleId={articleId}
+                  userToken={localStorage.getItem('token')}
+              />
+          )}
+
+
+          {article.author && user?._id !== article.author._id && article.author.role !== 'Admin' && (  
             <SubscribeButton publisherId={article.author._id} />
           )}
         </div>

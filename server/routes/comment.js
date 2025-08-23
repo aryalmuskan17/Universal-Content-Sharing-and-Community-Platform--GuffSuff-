@@ -27,19 +27,10 @@ router.post('/:articleId', auth(), async (req, res) => {
       content,
     });
     
-    // START DEBUGGING
-    console.log('New comment created. Checking for notification logic...');
-    console.log('Commenter ID:', req.user.id);
-    console.log('Article Author ID:', article.author.toString());
-    
     // Check if the commenter is not the article's author
     if (req.user.id.toString() !== article.author.toString()) {
-      console.log('Condition met: Commenter is not the author. Attempting to send notification...');
       const publisher = await User.findById(article.author);
       const commenter = await User.findById(req.user.id);
-      
-      console.log('Publisher found:', !!publisher);
-      console.log('Commenter found:', !!commenter);
 
       if (publisher && commenter) {
         try {
@@ -50,17 +41,12 @@ router.post('/:articleId', auth(), async (req, res) => {
             type: 'comment',
             message: `${commenter.username} commented on your article: "${article.title}"`,
           });
-          console.log('SUCCESS: Notification created successfully!');
         } catch (notificationErr) {
           console.error('ERROR: Failed to create notification:', notificationErr);
         }
-      } else {
-        console.log('WARNING: Could not find publisher or commenter user for notification.');
-      }
-    } else {
-      console.log('Condition not met: Commenter is the same as the article author. No notification will be sent.');
     }
-    // END DEBUGGING
+    }
+
 
     res.status(201).json(newComment);
   } catch (error) {

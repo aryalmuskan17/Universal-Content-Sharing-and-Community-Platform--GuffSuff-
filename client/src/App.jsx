@@ -25,6 +25,8 @@ import Profile from './components/Profile.jsx';
 import EditArticle from './pages/EditArticle.jsx';
 import PublisherAnalytics from './components/PublisherAnalytics.jsx';
 import SingleArticle from './pages/SingleArticle.jsx';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailed from './pages/PaymentFailed';
 
 // NEW: Import the LoginSuccess component
 import LoginSuccess from './pages/LoginSuccess.jsx';
@@ -41,6 +43,9 @@ function App() {
             <Route path="/register" element={<Register />} />
             {/* NEW: Route to handle the Google login redirect */}
             <Route path="/login-success" element={<LoginSuccess />} />
+
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-failed" element={<PaymentFailed />} />
 
             {/* Public and Protected Routes that share the common Layout */}
             <Route element={<Layout />}>

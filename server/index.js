@@ -13,7 +13,8 @@ const articleRoutes = require('./routes/article');
 const analyticsRoutes = require('./routes/analytics');
 const notificationRoutes = require('./routes/notification'); 
 // NEW: Import the comment routes
-const commentRoutes = require('./routes/comment'); 
+const commentRoutes = require('./routes/comment');
+const paymentRoutes = require('./routes/payments'); 
 
 const app = express();
 
@@ -41,7 +42,12 @@ app.use('/api/articles', articleRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes); 
 // NEW: Use the comment routes
-app.use('/api/comments', commentRoutes); 
+app.use('/api/comments', commentRoutes);
+app.use('/api/payments', paymentRoutes);
+app.get(/.*/, (req, res) => {
+  console.log('GET request received for URL:', req.originalUrl);
+  res.status(404).send('Not Found');
+});
 
 // 6. Start the server.
 const PORT = process.env.PORT || 4000;
