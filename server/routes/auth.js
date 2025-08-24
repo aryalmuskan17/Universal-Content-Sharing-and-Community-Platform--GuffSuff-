@@ -1,4 +1,4 @@
-// server/routes/auth.js (Final and Complete Merged Version with Google Redirect Fix)
+// server/routes/auth.js (FINAL CORRECTED VERSION)
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
@@ -7,6 +7,9 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
+const Payment = require('../models/Payment');
+// FINAL FIX: Add the mongoose import here to enable ObjectId conversion
+const mongoose = require('mongoose'); 
 const router = express.Router();
 
 // ------------------------------------------
@@ -480,5 +483,60 @@ router.get('/subscriptions', protect, async (req, res) => {
   }
 });
 
+// FINAL FINAL FIX
+router.get('/donations/:publisherId', protect, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { publisherId } = req.params;
+
+    // Aggregate to sum all donations from the user to the specified publisher
+    const totalDonated = await Payment.aggregate([
+      {
+        $match: {
+          // CORRECTED: Added 'new' keyword to both ObjectId conversions
+          user: new mongoose.Types.ObjectId(userId),
+          publisher: new mongoose.Types.ObjectId(publisherId),
+          status: 'completed',
+          purpose: 'publisher_payment'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const amount = totalDonated.length > 0 ? totalDonated[0].totalAmount : 0;
+    
+    res.status(200).json({ totalAmount: amount });
+
+  } catch (error) {
+    console.error('Error fetching donation history:', error);
+    res.status(500).json({ message: 'Server error fetching donation history.' });
+  }
+});
+
+// NEW ROUTE: Fetch a list of individual donations from a user to a publisher
+router.get('/donations/list/:publisherId', protect, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { publisherId } = req.params;
+
+    const donations = await Payment.find({
+      user: new mongoose.Types.ObjectId(userId),
+      publisher: new mongoose.Types.ObjectId(publisherId),
+      status: 'completed',
+      purpose: 'publisher_payment'
+    }).sort({ createdAt: -1 }); // Sort by newest first
+
+    res.status(200).json(donations);
+
+  } catch (error) {
+    console.error('Error fetching list of donations:', error);
+    res.status(500).json({ message: 'Server error fetching donation history.' });
+  }
+});
 
 module.exports = router;
