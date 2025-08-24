@@ -50,9 +50,11 @@ const Layout = () => {
                             <>
                                 <button onClick={() => navigate('/create-article')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('createArticle')}</button>
                                 <button onClick={() => navigate('/publisher-analytics')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Analytics</button>
-                                {/* NEW: Button for Publishers to view their subscribers */}
-                                <button onClick={() => navigate('/my-subscribers')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Subscribers</button>
                             </>
+                        )}
+
+                        {user && user.role === 'Publisher' && (
+                                 <button onClick={() => navigate('/my-subscribers')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Subscribers</button>
                         )}
                         
                         {user?.role === 'Admin' && (
