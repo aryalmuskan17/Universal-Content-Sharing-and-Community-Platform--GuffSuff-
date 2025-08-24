@@ -7,6 +7,7 @@ const auth = require('../middleware/auth');
 const Payment = require('../models/Payment'); 
 const User = require('../models/User'); 
 const crypto = require('crypto'); // We need this for signature generation
+const Notification = require('../models/Notification'); // Import the Notification model
 
 // @desc    Initiate a payment transaction and generate a signature
 // @route   POST /api/payments/initiate
@@ -109,6 +110,24 @@ router.get('/verify', async (req, res) => {
                 publisher.balance = (publisher.balance || 0) + paymentRecord.amount;
                 await publisher.save();
             }
+
+                    // START OF NEW NOTIFICATION LOGIC
+            const donor = await User.findById(paymentRecord.user);
+            
+            if (publisher && donor && paymentRecord.article) {
+                const message = `${donor.username} has donated Rs. ${paymentRecord.amount} to your articles.`;
+                
+                await Notification.create({
+                    user: publisher._id, // The recipient of the notification
+                    fromUser: donor._id, // The user who made the donation
+                    article: paymentRecord.article, // The article related to the donation
+                    type: 'donation',
+                    message,
+                    amount: paymentRecord.amount,
+                    link: '/my-subscribers' // Link to view subscribers or donations 
+                });
+            }
+            // END OF NEW NOTIFICATION LOGIC
 
             res.redirect(`http://localhost:5173/payment-success?amount=${total_amount}`);
 

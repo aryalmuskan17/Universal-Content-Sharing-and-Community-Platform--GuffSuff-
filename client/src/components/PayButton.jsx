@@ -5,7 +5,7 @@ import axios from 'axios';
 const PayButton = ({ amount, purpose, publisherId, articleId, userToken }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const ngrokUrl = 'https://572b5d8957ee.ngrok-free.app'; // Use your actual current ngrok URL
+    const ngrokUrl = 'https://946cf2a7dbc2.ngrok-free.app'; // Use your actual current ngrok URL
 
     const handlePayment = async () => {
         setLoading(true);

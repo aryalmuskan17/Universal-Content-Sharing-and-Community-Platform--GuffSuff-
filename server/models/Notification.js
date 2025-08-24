@@ -22,7 +22,7 @@ const notificationSchema = new mongoose.Schema({
   type: {
     type: String,
     // Add 'new_article' to the list of valid enum values
-    enum: ['like', 'share', 'comment', 'subscribe', 'publish', 'review', 'reject', 'new_article'], 
+    enum: ['like', 'share', 'comment', 'subscribe', 'publish', 'review', 'reject', 'new_article', 'donation'], 
     required: true,
   },
   message: {
@@ -33,6 +33,10 @@ const notificationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+    link: { // <<< ADD THIS FIELD
+    type: String, // <<< AND ITS TYPE
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,

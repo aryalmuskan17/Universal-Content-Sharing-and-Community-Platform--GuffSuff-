@@ -77,6 +77,11 @@ const NotificationBell = () => {
   };
   
   const getNotificationLink = (notification) => {
+    // The link is now a separate field in the notification object
+    if (notification.link) {
+      return notification.link;
+    }
+    
     const articleId = notification.article ? notification.article._id : null;
     
     switch (notification.type) {
@@ -84,12 +89,15 @@ const NotificationBell = () => {
       case 'comment':
       case 'share':
       case 'publish':
-      case 'reject': // NEW: Add 'reject' here
+      case 'reject':
       case 'new_article':
         return articleId ? `/article/${articleId}` : '#';
       case 'review':
-        // For Admin to review a pending article
         return articleId ? `/article/${articleId}` : '/admin-dashboard';
+      case 'donation': // NEW: Add the donation case
+        // The link for donations is already saved in the database,
+        // so we return it directly.
+        return notification.link || '#';
       default:
         return '#';
     }
