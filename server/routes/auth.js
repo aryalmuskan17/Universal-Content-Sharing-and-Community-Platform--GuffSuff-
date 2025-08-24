@@ -459,4 +459,26 @@ router.delete('/users/:id', protect, async (req, res) => {
   }
 });
 
+// NEW ROUTE: Fetch a list of a user's subscribed publishers
+router.get('/subscriptions', protect, async (req, res) => {
+  try {
+    const reader = await User.findById(req.user.id)
+      .populate({
+        path: 'subscriptions',
+        select: 'username email picture' // Only retrieve these fields from the publisher user
+      });
+    
+    if (!reader) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    res.status(200).json(reader.subscriptions);
+
+  } catch (error) {
+    console.error('Error fetching subscriptions:', error);
+    res.status(500).json({ message: 'Server error while fetching subscriptions.' });
+  }
+});
+
+
 module.exports = router;

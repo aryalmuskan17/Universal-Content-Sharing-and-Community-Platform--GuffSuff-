@@ -31,6 +31,9 @@ import PaymentFailed from './pages/PaymentFailed';
 // NEW: Import the LoginSuccess component
 import LoginSuccess from './pages/LoginSuccess.jsx';
 
+// NEW: Import the MySubscriptions component
+import MySubscriptions from './pages/MySubscriptions.jsx';
+
 function App() {
   return (
     // CHANGE: Wrap the entire application with the ThemeProvider and UserProvider
@@ -69,6 +72,11 @@ function App() {
               <Route 
                 path="edit-article/:articleId" 
                 element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><EditArticle /></ProtectedRoute>} 
+              />
+              {/* NEW: Add the MySubscriptions route here */}
+              <Route 
+                path="my-subscriptions" 
+                element={<ProtectedRoute requiredRoles={['Reader', 'Publisher', 'Admin']}><MySubscriptions /></ProtectedRoute>} 
               />
               
               {/* Admin-only Routes with Layout (all wrapped by ProtectedRoute) */}

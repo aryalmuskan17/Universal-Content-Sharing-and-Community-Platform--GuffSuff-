@@ -87,6 +87,10 @@ const Layout = () => {
                             <button onClick={() => navigate('/profile')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                                 {t('profile')}
                             </button>
+                            {/* NEW: Add the My Subscriptions button */}
+                            <button onClick={() => navigate('/my-subscriptions')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                My Subscriptions
+                            </button>
                             <span className="text-sm font-medium hidden md:block">
                                 {t('welcome')} {user?.username}!
                             </span>
