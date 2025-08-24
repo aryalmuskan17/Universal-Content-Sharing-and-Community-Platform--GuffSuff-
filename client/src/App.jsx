@@ -5,8 +5,8 @@ import { Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { ThemeProvider } from './context/ThemeContext'; // CHANGE: Import the ThemeProvider
-import { UserProvider } from './context/UserContext'; // This should also be at the top level
+import { ThemeProvider } from './context/ThemeContext';
+import { UserProvider } from './context/UserContext';
 
 // ProtectedRoute component and Layout
 import ProtectedRoute from './components/ProtectedRoute';
@@ -27,16 +27,15 @@ import PublisherAnalytics from './components/PublisherAnalytics.jsx';
 import SingleArticle from './pages/SingleArticle.jsx';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
-
-// NEW: Import the LoginSuccess component
 import LoginSuccess from './pages/LoginSuccess.jsx';
-
-// NEW: Import the MySubscriptions component
 import MySubscriptions from './pages/MySubscriptions.jsx';
+
+// NEW: Import the MySubscribers component
+import MySubscribers from './pages/MySubscribers.jsx';
+
 
 function App() {
   return (
-    // CHANGE: Wrap the entire application with the ThemeProvider and UserProvider
     <ThemeProvider>
       <UserProvider>
         <div className="min-h-screen">
@@ -44,9 +43,7 @@ function App() {
             {/* Public Routes without Layout */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            {/* NEW: Route to handle the Google login redirect */}
             <Route path="/login-success" element={<LoginSuccess />} />
-
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-failed" element={<PaymentFailed />} />
 
@@ -67,16 +64,21 @@ function App() {
               />
               <Route 
                 path="publisher-analytics" 
-                element={<ProtectedRoute requiredRoles={['Publisher', 'Admin', 'Reader']}><PublisherAnalytics /></ProtectedRoute>} 
+                element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><PublisherAnalytics /></ProtectedRoute>} 
               />
               <Route 
                 path="edit-article/:articleId" 
                 element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><EditArticle /></ProtectedRoute>} 
               />
-              {/* NEW: Add the MySubscriptions route here */}
               <Route 
                 path="my-subscriptions" 
-                element={<ProtectedRoute requiredRoles={['Reader', 'Publisher', 'Admin']}><MySubscriptions /></ProtectedRoute>} 
+                element={<ProtectedRoute requiredRoles={['Reader']}><MySubscriptions /></ProtectedRoute>} 
+              />
+
+              {/* NEW: Add the MySubscribers route for Publishers and Admins */}
+              <Route 
+                path="my-subscribers" 
+                element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><MySubscribers /></ProtectedRoute>} 
               />
               
               {/* Admin-only Routes with Layout (all wrapped by ProtectedRoute) */}

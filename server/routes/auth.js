@@ -483,6 +483,47 @@ router.get('/subscriptions', protect, async (req, res) => {
   }
 });
 
+// UPDATED ROUTE: Fetch a list of a publisher's subscribers with donation data
+router.get('/subscribers', protect, async (req, res) => {
+  try {
+    const publisherId = req.user.id;
+    
+    if (req.user.role !== 'Publisher' && req.user.role !== 'Admin') {
+      return res.status(403).json({ message: 'Access denied. Publishers and Admins only.' });
+    }
+
+    const subscribersList = await User.find({
+      subscriptions: publisherId
+    }).select('username email picture');
+
+    const subscribersWithDonations = await Promise.all(
+      subscribersList.map(async (subscriber) => {
+        // Find all donations from this specific subscriber to the current publisher using the Payment model
+        const donations = await Payment.find({
+          user: subscriber._id, // The user making the donation
+          publisher: publisherId, // The publisher receiving the donation
+          status: 'completed'
+        });
+
+        // Calculate the total donation amount
+        const totalDonated = donations.reduce((sum, donation) => sum + donation.amount, 0);
+
+        return {
+          ...subscriber.toObject(),
+          totalDonated,
+          donations // Pass the full list of donations
+        };
+      })
+    );
+
+    res.status(200).json(subscribersWithDonations);
+    
+  } catch (error) {
+    console.error('Error fetching subscribers with donations:', error);
+    res.status(500).json({ message: 'Server error while fetching subscribers.' });
+  }
+});
+
 // FINAL FINAL FIX
 router.get('/donations/:publisherId', protect, async (req, res) => {
   try {

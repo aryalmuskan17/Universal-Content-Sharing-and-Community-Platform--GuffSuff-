@@ -1,20 +1,19 @@
-// src/components/Layout.jsx (Updated with Correct Logout Redirect and Dark Mode)
+// src/components/Layout.jsx (Updated with My Subscribers button)
 
 import React, { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
-import { ThemeContext } from '../context/ThemeContext'; // CHANGE: Import ThemeContext
-import { FaSun, FaMoon } from 'react-icons/fa'; // CHANGE: Import icons
+import { ThemeContext } from '../context/ThemeContext';
+import { FaSun, FaMoon } from 'react-icons/fa';
 import { Outlet, useNavigate } from 'react-router-dom';
 import NotificationBell from './NotificationBell.jsx';
 
-// NEW: Import your logo image
 import logo from '../assets/logo.png'; 
 
 const Layout = () => {
     const { logout, user } = useContext(UserContext);
     const { t, i18n } = useTranslation();
-    const { isDarkMode, toggleDarkMode } = useContext(ThemeContext); // CHANGE: Use ThemeContext
+    const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
     const navigate = useNavigate();
 
     const changeLanguage = (lng) => {
@@ -27,7 +26,6 @@ const Layout = () => {
     };
 
     return (
-        // CHANGE: Add dark mode classes to the main container
         <div className="min-h-screen flex flex-col font-sans bg-gray-100 dark:bg-black dark:text-gray-100 transition-colors duration-300">
             <nav className="bg-white text-gray-800 shadow-md p-4 flex flex-col md:flex-row items-center justify-between sticky top-0 z-50 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
                 {/* Logo and App Title */}
@@ -52,6 +50,8 @@ const Layout = () => {
                             <>
                                 <button onClick={() => navigate('/create-article')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('createArticle')}</button>
                                 <button onClick={() => navigate('/publisher-analytics')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Analytics</button>
+                                {/* NEW: Button for Publishers to view their subscribers */}
+                                <button onClick={() => navigate('/my-subscribers')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Subscribers</button>
                             </>
                         )}
                         
@@ -66,7 +66,7 @@ const Layout = () => {
                     </div>
                 </div>
 
-                {/* CHANGE: Add the Dark Mode Toggle Button */}
+                {/* Dark Mode Toggle Button */}
                 <button
                     onClick={toggleDarkMode}
                     className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-300"
@@ -79,7 +79,7 @@ const Layout = () => {
                     )}
                 </button>
 
-                {/* UPDATED: Conditionally render based on user authentication */}
+                {/* Conditionally render based on user authentication */}
                 <div className="flex items-center space-x-2 mt-2 md:mt-0">
                     {user ? (
                         <>
@@ -87,10 +87,12 @@ const Layout = () => {
                             <button onClick={() => navigate('/profile')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                                 {t('profile')}
                             </button>
-                            {/* NEW: Add the My Subscriptions button */}
-                            <button onClick={() => navigate('/my-subscriptions')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                                My Subscriptions
-                            </button>
+                            {/* UPDATED: Conditionally render the My Subscriptions button only for Readers */}
+                            {user.role === 'Reader' && (
+                                <button onClick={() => navigate('/my-subscriptions')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                    My Subscriptions
+                                </button>
+                            )}
                             <span className="text-sm font-medium hidden md:block">
                                 {t('welcome')} {user?.username}!
                             </span>
