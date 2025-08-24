@@ -5,7 +5,7 @@ import axios from 'axios';
 const PayButton = ({ amount, purpose, publisherId, articleId, userToken }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const ngrokUrl = 'https://4eeb788011fa.ngrok-free.app'; // Use your actual current ngrok URL
+    const ngrokUrl = 'https://572b5d8957ee.ngrok-free.app'; // Use your actual current ngrok URL
 
     const handlePayment = async () => {
         setLoading(true);
@@ -84,7 +84,7 @@ const PayButton = ({ amount, purpose, publisherId, articleId, userToken }) => {
                 disabled={loading}
                 className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
             >
-                {loading ? 'Processing...' : 'Pay with eSewa'}
+                {loading ? 'Processing...' : 'Donate'}
             </button>
             {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>

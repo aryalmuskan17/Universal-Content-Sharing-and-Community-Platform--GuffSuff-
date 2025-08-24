@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useParams, useNavigate, Link } from 'react-router-dom'; // CHANGE: Added Link
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft } from 'react-icons/fa';
 import { UserContext } from '../context/UserContext';
@@ -22,6 +22,11 @@ const SingleArticle = () => {
   const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const { isDarkMode } = useContext(ThemeContext);
+  
+  // State for the donation amount, starting with a default value
+  const [donationAmount, setDonationAmount] = useState(100);
+  // State to control visibility of the donation input
+  const [showDonationInput, setShowDonationInput] = useState(false);
 
   const isLiked = user && article?.likedBy?.includes(user._id);
 
@@ -210,17 +215,6 @@ const SingleArticle = () => {
             </Link>
           )}
 
-          {/* NEW: Pay Button for readers */}
-          {user && user._id !== article.author._id && user.role === 'Reader' && (
-              <PayButton
-                  amount={100} // Example: A fixed amount to pay
-                  purpose="publisher_payment"
-                  publisherId={article.author._id}
-                  articleId={articleId}
-                  userToken={localStorage.getItem('token')}
-              />
-          )}
-
 
           {article.author && user?._id !== article.author._id && article.author.role !== 'Admin' && (  
             <SubscribeButton publisherId={article.author._id} />
@@ -278,6 +272,50 @@ const SingleArticle = () => {
             <span>{article.shares || 0}</span>
             <span>Shares</span>
         </div>
+        
+        {/* NEW LOCATION FOR DONATE BUTTONS */}
+        {user && user._id !== article.author._id && user.role === 'Reader' && (
+            <>
+              {!showDonationInput ? (
+                // Show "Donate" button initially
+                <button
+                  onClick={() => setShowDonationInput(true)}
+                  className="py-2 px-4 text-sm font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  Donate
+                </button>
+              ) : (
+                // Show input and "Pay" button when donating
+                <>
+                  <input
+                    type="number"
+                    value={donationAmount}
+                    onChange={(e) => setDonationAmount(e.target.value)}
+                    min="1"
+                    className="w-24 px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                    placeholder="Amount"
+                  />
+                  <PayButton
+                    amount={donationAmount}
+                    purpose="publisher_payment"
+                    publisherId={article.author._id}
+                    articleId={articleId}
+                    userToken={localStorage.getItem('token')}
+                  />
+                  {/* NEW: Cancel button */}
+                  <button
+                    onClick={() => {
+                      setShowDonationInput(false);
+                      setDonationAmount(100); // Reset amount on cancel
+                    }}
+                    className="py-2 px-4 text-sm font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+            </>
+        )}
       </div>
       
       <div className="mt-12">
