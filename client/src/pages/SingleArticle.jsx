@@ -243,7 +243,7 @@ const SingleArticle = () => {
           )}
 
           {/* Subscribe button, only visible to non-author readers */}
-          {article.author && user?._id !== article.author._id && user.role !== 'Admin' && (  
+          {user && article.author && user._id !== article.author._id && user.role !== 'Admin' && (
             <SubscribeButton publisherId={article.author._id} />
           )}
         </div>
