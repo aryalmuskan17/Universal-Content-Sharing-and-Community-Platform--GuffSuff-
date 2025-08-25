@@ -34,30 +34,38 @@ import MySubscriptions from './pages/MySubscriptions.jsx';
 import MySubscribers from './pages/MySubscribers.jsx';
 
 
+// The main component of the application. It sets up the global context providers and defines all application routes.
 function App() {
   return (
+    // ThemeProvider wraps the entire app, providing dark/light mode context
     <ThemeProvider>
+      {/* UserProvider provides global user authentication state */}
       <UserProvider>
         <div className="min-h-screen">
+          {/* Routes component acts as a container for all route definitions */}
           <Routes>
-            {/* Public Routes without Layout */}
+            {/* Public Routes without a common layout */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login-success" element={<LoginSuccess />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-failed" element={<PaymentFailed />} />
 
-            {/* Public and Protected Routes that share the common Layout */}
+            {/* A nested route structure to apply a common Layout to multiple pages */}
             <Route element={<Layout />}>
-              {/* Public Routes with Layout */}
+              {/* Public Routes that share the common Layout */}
               <Route path="/" element={<ArticleList />} />
               <Route path="article/:articleId" element={<SingleArticle />} />
               
-              {/* Protected Routes with Layout (all wrapped by ProtectedRoute) */}
+              {/* Protected Routes. The `ProtectedRoute` component enforces access control based on user roles. */}
+              
+              {/* Routes accessible to all authenticated users (Reader, Publisher, Admin) */}
               <Route 
                 path="profile" 
                 element={<ProtectedRoute requiredRoles={['Reader', 'Publisher', 'Admin']}><Profile /></ProtectedRoute>} 
               />
+              
+              {/* Routes accessible to Publishers and Admins */}
               <Route 
                 path="create-article" 
                 element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><CreateArticle /></ProtectedRoute>} 
@@ -71,17 +79,17 @@ function App() {
                 element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><EditArticle /></ProtectedRoute>} 
               />
               <Route 
-                path="my-subscriptions" 
-                element={<ProtectedRoute requiredRoles={['Reader']}><MySubscriptions /></ProtectedRoute>} 
-              />
-
-              {/* NEW: Add the MySubscribers route for Publishers and Admins */}
-              <Route 
                 path="my-subscribers" 
                 element={<ProtectedRoute requiredRoles={['Publisher', 'Admin']}><MySubscribers /></ProtectedRoute>} 
               />
               
-              {/* Admin-only Routes with Layout (all wrapped by ProtectedRoute) */}
+              {/* Routes accessible only to Readers */}
+              <Route 
+                path="my-subscriptions" 
+                element={<ProtectedRoute requiredRoles={['Reader']}><MySubscriptions /></ProtectedRoute>} 
+              />
+
+              {/* Admin-only Routes */}
               <Route 
                 path="admin-dashboard" 
                 element={<ProtectedRoute requiredRoles={['Admin']}><AdminDashboard /></ProtectedRoute>} 
@@ -100,9 +108,10 @@ function App() {
               />
             </Route>
             
-            {/* Fallback for unknown URLs */}
+            {/* A catch-all route for any undefined paths */}
             <Route path="*" element={<div>Page Not Found</div>} />
           </Routes>
+          {/* ToastContainer for displaying toast notifications */}
           <ToastContainer position="bottom-right" />
         </div>
       </UserProvider>

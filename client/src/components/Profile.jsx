@@ -1,4 +1,4 @@
-// client/src/components/Profile.jsx (Final Corrected Version with Password Change)
+// client/src/components/Profile.jsx
 
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
@@ -8,28 +8,37 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { FaUserCircle, FaEdit } from 'react-icons/fa';
 
+// This component displays and allows users to edit their profile information
 const Profile = () => {
+    // Access user data and the context update function
     const { user, updateUserContext } = useContext(UserContext);
     const { t } = useTranslation();
     const { isDarkMode } = useContext(ThemeContext);
+    
+    // State to hold the user's profile information
     const [profile, setProfile] = useState({
         fullName: '',
         bio: '',
         picture: '',
         contactInfo: ''
     });
+    // State for the username input field, separate from the main profile
     const [newUsername, setNewUsername] = useState('');
+    // State to hold the new profile picture file
     const [pictureFile, setPictureFile] = useState(null);
+    // State to toggle between view and edit mode
     const [isEditing, setIsEditing] = useState(false);
+    // State to handle loading status while fetching data
     const [loading, setLoading] = useState(true);
 
-    // NEW: State for password change form
+    // NEW: State for password change form inputs
     const [passwords, setPasswords] = useState({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     });
 
+    // Effect to fetch the user's profile data on component load
     useEffect(() => {
         const fetchProfile = async () => {
             if (user && user._id) {
@@ -38,6 +47,7 @@ const Profile = () => {
                     const response = await axios.get('http://localhost:5001/api/auth/profile', {
                         headers: { 'x-auth-token': token }
                     });
+                    // Populate profile state with fetched data
                     setProfile({ 
                         fullName: response.data.fullName || '',
                         bio: response.data.bio || '',
@@ -58,6 +68,7 @@ const Profile = () => {
         fetchProfile();
     }, [user]);
 
+    // Handler for changes in the profile edit form
     const handleEditChange = (e) => {
         const { name, value } = e.target;
         setProfile(prevProfile => ({
@@ -66,11 +77,12 @@ const Profile = () => {
         }));
     };
 
+    // Handler for the profile picture file input
     const handleFileChange = (e) => {
         setPictureFile(e.target.files[0]);
     };
 
-    // NEW: Handle password change form input
+    // NEW: Handler for password change form input
     const handlePasswordChange = (e) => {
         const { name, value } = e.target;
         setPasswords(prevPasswords => ({
@@ -79,11 +91,12 @@ const Profile = () => {
         }));
     };
 
-    // UPDATED: Handle profile update with FormData for file upload
+    // UPDATED: Handler to update profile information, including a file
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
+            // Use FormData to handle both text and file data
             const formData = new FormData();
             formData.append('fullName', profile.fullName);
             formData.append('bio', profile.bio);
@@ -95,12 +108,12 @@ const Profile = () => {
             const response = await axios.patch('http://localhost:5001/api/auth/profile', formData, {
                 headers: { 
                     'x-auth-token': token,
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data' // Required for file uploads
                 }
             });
-            updateUserContext(response.data);
+            updateUserContext(response.data); // Update user context with new data
             toast.success('Profile updated successfully!');
-            setIsEditing(false);
+            setIsEditing(false); // Switch back to view mode
         } catch (error) {
             console.error('Error updating profile:', error);
             toast.error(error.response?.data?.error || 'Failed to update profile.');
@@ -118,7 +131,7 @@ const Profile = () => {
             const response = await axios.patch('http://localhost:5001/api/auth/profile/username', { username: newUsername }, {
                 headers: { 'x-auth-token': token }
             });
-            updateUserContext(response.data);
+            updateUserContext(response.data); // Update user context with new username
             toast.success('Username updated successfully!');
         } catch (error) {
             console.error('Error updating username:', error);
@@ -155,10 +168,12 @@ const Profile = () => {
         }
     };
 
+    // Conditional rendering for loading state
     if (loading) {
         return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingProfile')}</div>;
     }
 
+    // Conditional rendering if no user is logged in
     if (!user) {
         return <div className="text-center p-8 text-xl font-medium text-red-500">{t('loginToViewProfile')}</div>;
     }
@@ -168,6 +183,7 @@ const Profile = () => {
             <div className="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
                 <h2 className="text-3xl font-bold text-center text-gray-800 mb-8 dark:text-gray-100">{t('profile')}</h2>
                 
+                {/* Profile Picture and Basic Info section */}
                 <div className="flex flex-col items-center border-b pb-6 mb-6 dark:border-gray-700">
                     {profile.picture ? (
                         <img 
@@ -184,7 +200,7 @@ const Profile = () => {
                     <p className="text-gray-500 font-medium capitalize dark:text-gray-400">{user.role}</p>
                 </div>
                 
-                {/* NEW: Username change section outside of the main form */}
+                {/* NEW: Username change section */}
                 <div className="flex items-center space-x-2 mb-6 border-b pb-6 dark:border-gray-700">
                     <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('username')}:</label>
                     <input
@@ -201,6 +217,7 @@ const Profile = () => {
                     </button>
                 </div>
 
+                {/* Conditional rendering for Edit Mode vs. View Mode */}
                 {isEditing ? (
                     <form onSubmit={handleUpdate} className="space-y-6">
                         {/* Form fields for profile information (fullName, bio, etc.) */}
@@ -259,6 +276,7 @@ const Profile = () => {
                     </form>
                 ) : (
                     <div className="space-y-6">
+                        {/* Display profile details in view mode */}
                         <div>
                             <h4 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('bio')}</h4>
                             <p className="text-gray-600 mt-2 dark:text-gray-300">{profile.bio || 'No bio provided.'}</p>

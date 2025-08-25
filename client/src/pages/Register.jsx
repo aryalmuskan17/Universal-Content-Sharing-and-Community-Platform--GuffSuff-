@@ -1,4 +1,4 @@
-// client/src/pages/Register.jsx (Final and Complete Version)
+// client/src/pages/Register.jsx 
 
 import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
@@ -10,13 +10,16 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Logo from '../assets/logo.png';
 
+// This component handles user registration, supporting both standard email/password sign-up and Google OAuth.
 const Register = () => {
   const { t } = useTranslation();
   const { login } = useContext(UserContext);
   const { isDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
+  // `useSearchParams` is used to read data passed in the URL's query string (e.g., from a Google OAuth redirect).
   const [searchParams] = useSearchParams();
 
+  // State to manage the form data
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -25,13 +28,16 @@ const Register = () => {
     role: 'Publisher',
   });
 
+  // State to store the Google ID if the user is redirected from Google OAuth
   const [googleId, setGoogleId] = useState(null);
 
+  // Effect hook to check the URL for Google user data on component load.
   useEffect(() => {
     const googleIdFromUrl = searchParams.get("googleId");
     const usernameFromUrl = searchParams.get("username");
     const emailFromUrl = searchParams.get("email");
 
+    // If Google user data is found, pre-populate the form and set the googleId state.
     if (googleIdFromUrl && usernameFromUrl && emailFromUrl) {
       setGoogleId(googleIdFromUrl);
       setFormData(prevFormData => ({
@@ -42,19 +48,23 @@ const Register = () => {
     }
   }, [searchParams]);
 
+  // General handler for form input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   
+  // Handler for form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate that the passwords match
     if (formData.password !== formData.confirmPassword) {
       toast.error(t('passwordsDoNotMatch'));
       return;
     }
 
     try {
+      // The request body includes the googleId if it exists, allowing for a combined registration process.
       const body = { 
         username: formData.username, 
         email: formData.email,
@@ -65,9 +75,11 @@ const Register = () => {
       
       const res = await axios.post('http://localhost:5001/api/auth/register', body);
       
+      // Call the `login` function from context to save the token and user data
       login(res.data.token, res.data.user);
       toast.success(res.data.message);
       
+      // Redirect to the homepage after a successful registration
       setTimeout(() => {
         navigate('/');
       }, 0);
@@ -77,7 +89,7 @@ const Register = () => {
     }
   };
   
-  // NEW: Function to handle Google login click
+  // NEW: Function to initiate the Google OAuth process by redirecting the user to the backend endpoint.
   const handleGoogleRegister = () => {
     window.location.href = 'http://localhost:5001/api/auth/google';
   };
@@ -99,6 +111,7 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Username field, disabled if pre-populated from Google */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300" htmlFor="username">
               {t('username')}
@@ -115,6 +128,7 @@ const Register = () => {
               autoComplete="username"
             />
           </div>
+          {/* Email field, also disabled if pre-populated from Google */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300" htmlFor="email">
               {t('email')}
@@ -131,6 +145,7 @@ const Register = () => {
               autoComplete="email"
             />
           </div>
+          {/* Password field */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300" htmlFor="password">
               {t('password')}
@@ -163,6 +178,7 @@ const Register = () => {
             />
           </div>
 
+          {/* User Role radio buttons */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2 dark:text-gray-300">
               {t('userRole')}
@@ -201,7 +217,7 @@ const Register = () => {
           </button>
         </form>
 
-        {/* NEW: Register with Google section */}
+        {/* Separator for social login section */}
         <div className="flex items-center my-6">
           <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
           <span className="flex-shrink mx-4 text-gray-500 dark:text-gray-400">
@@ -210,6 +226,7 @@ const Register = () => {
           <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
         </div>
 
+        {/* Google Register Button */}
         <button 
           onClick={handleGoogleRegister}
           className="w-full py-3 px-4 flex items-center justify-center space-x-2 border border-gray-300 rounded-lg text-gray-700 font-bold hover:bg-gray-50 transition-colors dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
@@ -218,6 +235,7 @@ const Register = () => {
           <span>{t('registerWithGoogle')}</span>
         </button>
 
+        {/* Link to Login Page */}
         <div className="mt-6 text-center text-gray-600 dark:text-gray-400">
           {t('alreadyHaveAccount')}
           <Link to="/login" className="text-indigo-600 hover:underline ml-1">

@@ -1,3 +1,5 @@
+//client/src/pages/CreateArticle.jsx
+
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -5,38 +7,46 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ThemeContext } from '../context/ThemeContext';
 
-// Define the categories here. You can add more as needed.
+// Define the categories, consistent with other components that use them.
 const categories = ['Sports', 'Technology', 'Science', 'Health', 'Business', 'Entertainment'];
 
+// This component provides a form for publishers to create and submit a new article.
 const CreateArticle = () => {
   const { t } = useTranslation();
   const { isDarkMode } = useContext(ThemeContext);
 
+  // State to manage all form data fields
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     tags: '',
-    category: '', // The default will be an empty string, or you can set a default value from the categories array
+    category: '',
     language: 'en',
   });
 
+  // State to manage the selected media file
   const [media, setMedia] = useState(null);
+  // State to manage the loading status of the submission
   const [loading, setLoading] = useState(false);
 
+  // General handler for text and select input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   
+  // Handler specifically for file input changes
   const handleFileChange = (e) => {
     setMedia(e.target.files[0]);
   };
 
+  // Handler for form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     const token = localStorage.getItem('token');
     
+    // Check if the user is authenticated before proceeding
     if (!token) {
       toast.error(t('mustBeLoggedIn'));
       setLoading(false);
@@ -44,8 +54,10 @@ const CreateArticle = () => {
     }
 
     try {
+      // Split and trim the tags string into an array
       const articleTags = formData.tags.split(',').map(tag => tag.trim());
       
+      // Use FormData to correctly handle both text fields and a file upload
       const articleFormData = new FormData();
       articleFormData.append('title', formData.title);
       articleFormData.append('content', formData.content);
@@ -57,6 +69,7 @@ const CreateArticle = () => {
         articleFormData.append('media', media);
       }
 
+      // Make the POST request to the API
       await axios.post(
         'http://localhost:5001/api/articles',
         articleFormData,
@@ -70,6 +83,7 @@ const CreateArticle = () => {
       console.log('Article created successfully');
       toast.success(t('articleSubmittedForReview'));
       
+      // Reset the form state upon successful submission
       setFormData({
         title: '',
         content: '',
@@ -82,6 +96,7 @@ const CreateArticle = () => {
       console.error('Error creating article:', err.response?.data || err.message);
       toast.error(err.response?.data?.error || t('failedToCreateArticle'));
     } finally {
+      // Always set loading to false after the request completes
       setLoading(false);
     }
   };
@@ -92,6 +107,7 @@ const CreateArticle = () => {
         <h1 className="text-3xl font-bold text-gray-800 text-center mb-6 dark:text-gray-100">{t('createArticle')}</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Title Input */}
           <div>
             <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('title')}
@@ -107,6 +123,7 @@ const CreateArticle = () => {
             />
           </div>
 
+          {/* Content Textarea */}
           <div>
             <label htmlFor="content" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('content')}
@@ -122,6 +139,7 @@ const CreateArticle = () => {
             ></textarea>
           </div>
           
+          {/* Media File Input */}
           <div>
             <label htmlFor="media" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('media')}
@@ -135,6 +153,7 @@ const CreateArticle = () => {
             />
           </div>
           
+          {/* Tags Input */}
           <div>
             <label htmlFor="tags" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('tags')}
@@ -150,6 +169,7 @@ const CreateArticle = () => {
             />
           </div>
           
+          {/* Category Select */}
           <div>
             <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('category')}
@@ -171,6 +191,7 @@ const CreateArticle = () => {
             </select>
           </div>
           
+          {/* Language Select */}
           <div>
             <label htmlFor="language" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('language')}
@@ -187,6 +208,7 @@ const CreateArticle = () => {
             </select>
           </div>
           
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}

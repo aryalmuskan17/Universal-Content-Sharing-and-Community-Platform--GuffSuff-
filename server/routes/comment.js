@@ -5,8 +5,8 @@ const router = express.Router();
 const Comment = require('../models/Comment');
 const Article = require('../models/Article');
 const auth = require('../middleware/auth');
-const Notification = require('../models/Notification'); // NEW: Import Notification model
-const User = require('../models/User'); // NEW: Import User model to get commenter's name
+const Notification = require('../models/Notification'); 
+const User = require('../models/User'); 
 
 // @desc    Create a new comment on an article
 // @route   POST /api/comments/:articleId

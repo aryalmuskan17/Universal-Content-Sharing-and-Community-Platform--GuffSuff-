@@ -1,4 +1,4 @@
-// client/src/Login.jsx (Final Corrected Version with Logo and Dark Mode)
+// client/src/Login.jsx 
 
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
@@ -13,18 +13,23 @@ import Logo from './assets/logo.png';
 // NEW: Import the GoogleLoginButton component
 import GoogleLoginButton from './components/GoogleLoginButton'; 
 
+// This component provides the login functionality for the application, supporting both standard username/password and Google OAuth.
 const Login = () => {
   const { t } = useTranslation();
+  // State for username and password input fields
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  // Access the `login` function from the UserContext to manage global authentication state
   const { login } = useContext(UserContext);
   const { isDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
 
+  // Handler for form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      // Make a POST request to the backend login endpoint
       const res = await axios.post('http://localhost:5001/api/auth/login', {
         username,
         password,
@@ -32,15 +37,19 @@ const Login = () => {
 
       const { token, user } = res.data;
 
+      // Call the `login` function from context to store the token and user data
       login(token, user);
+      // Display a success toast notification
       toast.success(t('loginSuccess'));
 
+      // Redirect the user to the homepage after a short delay
       setTimeout(() => {
         navigate('/');
       }, 0);
 
     } catch (err) {
       console.error('Login failed:', err.response?.data || err);
+      // Display an error toast notification with a specific message from the backend, if available
       toast.error(err.response?.data?.error || t('loginFailed'));
     }
   };
@@ -49,7 +58,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 dark:bg-gray-800 transition-colors duration-300">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg dark:bg-gray-900 dark:shadow-none">
         
-        {/* NEW: Logo and Name Section */}
+        {/* NEW: Logo and Name Section for branding */}
         <div className="flex flex-col items-center justify-center mb-6">
           <img 
             src={Logo} 
@@ -61,6 +70,7 @@ const Login = () => {
           </h1>
         </div>
 
+        {/* Login form with username and password fields */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('username')}</label>
@@ -92,11 +102,12 @@ const Login = () => {
           </button>
         </form>
         
-        {/* NEW: Add the Google login button */}
+        {/* NEW: Component for Google login, abstracting away the OAuth logic */}
         <div className="mt-4">
           <GoogleLoginButton />
         </div>
 
+        {/* Link to the registration page for new users */}
         <div className="mt-6 text-center text-gray-600 dark:text-gray-400">
           {t('noAccount')}
           <Link to="/register" className="text-indigo-600 hover:underline ml-1">

@@ -18,7 +18,7 @@ const notificationSchema = new mongoose.Schema({
     ref: 'Article',
     required: true,
   },
-  // CORRECTED: The type of notification (e.g., like, share, comment, publish)
+  // The type of notification are (e.g., like, share, comment, publish)
   type: {
     type: String,
     // Add 'new_article' to the list of valid enum values
@@ -33,8 +33,8 @@ const notificationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-    link: { // <<< ADD THIS FIELD
-    type: String, // <<< AND ITS TYPE
+    link: { // <<< ADDED THIS FIELD TO STORE THE URL LINK OF PAYMENT
+    type: String, // <<< AND ITS TYPE ALSO
   },
 
   createdAt: {

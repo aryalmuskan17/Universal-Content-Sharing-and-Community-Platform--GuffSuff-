@@ -1,4 +1,4 @@
-// server/models/User.js (Final Corrected Version with Google Login Support)
+// server/models/User.js 
 
 const mongoose = require('mongoose');
 

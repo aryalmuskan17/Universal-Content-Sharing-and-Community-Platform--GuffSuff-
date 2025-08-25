@@ -1,4 +1,4 @@
-// server/routes/notification.js (Final Corrected Version)
+// server/routes/notification.js 
 
 const express = require('express');
 const router = express.Router();
@@ -11,7 +11,7 @@ const Notification = require('../models/Notification');
 router.get('/', auth(), async (req, res) => {
   try {
     const notifications = await Notification.find({ user: req.user.id })
-      // CORRECTED: Populate 'fromUser' instead of 'publisher'
+      //  Populate 'fromUser' instead of 'publisher'
       .populate('fromUser', 'name username') 
       .populate('article', 'title') 
       .sort({ createdAt: -1 });

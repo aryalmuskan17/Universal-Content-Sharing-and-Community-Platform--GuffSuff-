@@ -1,4 +1,4 @@
-// server/routes/auth.js (FINAL CORRECTED VERSION)
+// server/routes/auth.js
 
 const express = require('express');
 const bcrypt = require('bcryptjs');
@@ -12,9 +12,8 @@ const Payment = require('../models/Payment');
 const mongoose = require('mongoose'); 
 const router = express.Router();
 
-// ------------------------------------------
 // Passport.js Imports and Setup
-// ------------------------------------------
+
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const session = require('express-session');
@@ -85,13 +84,9 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// ------------------------------------------
 // END OF PASSPORT.JS SETUP
-// ------------------------------------------
 
-// ------------------------------------------
-// CORRECTED GOOGLE AUTHENTICATION ROUTES
-// ------------------------------------------
+// GOOGLE AUTHENTICATION ROUTES
 
 const CLIENT_URL_DEV = "http://localhost:5173"; // Your frontend URL
 
@@ -117,11 +112,6 @@ router.get(
     res.redirect(`${CLIENT_URL_DEV}/login-success?token=${token}`);
   }
 );
-
-// ------------------------------------------
-// END OF CORRECTED GOOGLE AUTHENTICATION ROUTES
-// ------------------------------------------
-
 
 // Corrected Middleware to verify JWT token and get user info
 const protect = (req, res, next) => {

@@ -1,3 +1,5 @@
+// client/src/components/PublisherAnalytics.jsx
+
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -7,13 +9,18 @@ import { FaEye, FaThumbsUp, FaShareAlt, FaComments } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { ThemeContext } from '../context/ThemeContext';
 
+// This component displays analytics for a publisher's articles
 const PublisherAnalytics = () => {
   const { t } = useTranslation();
+  // State to store the list of articles and their analytics
   const [articles, setArticles] = useState([]);
+  // State to manage the loading status
   const [loading, setLoading] = useState(true);
   const { isDarkMode } = useContext(ThemeContext);
+  // State to control which type of articles to view (all, pending, published, rejected)
   const [viewType, setViewType] = useState('all');
 
+  // Effect hook to fetch article analytics when the component mounts or viewType changes
   useEffect(() => {
     const fetchAnalytics = async () => {
       setLoading(true);
@@ -24,6 +31,7 @@ const PublisherAnalytics = () => {
             return;
         }
 
+        // Construct the URL to fetch articles, optionally with a status filter
         let url = 'http://localhost:5001/api/articles/publisher/analytics';
         if (viewType && viewType !== 'all') {
             url += `?status=${viewType}`;
@@ -47,7 +55,9 @@ const PublisherAnalytics = () => {
     
   }, [t, viewType]);
 
+  // Handler for deleting an article
   const handleDeleteArticle = async (articleId, title) => {
+    // Confirm with the user before deleting
     if (window.confirm(`Are you sure you want to delete the article "${title}"? This cannot be undone.`)) {
       const token = localStorage.getItem('token');
       try {
@@ -57,6 +67,7 @@ const PublisherAnalytics = () => {
           },
         });
         toast.success(`"${title}" has been deleted.`);
+        // Filter the deleted article out of the local state
         setArticles(articles.filter(article => article._id !== articleId));
       } catch (err) {
         toast.error('Failed to delete the article.');
@@ -65,19 +76,23 @@ const PublisherAnalytics = () => {
     }
   };
 
+  // Conditional rendering for the loading state
   if (loading) {
     return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingAnalytics')}</div>;
   }
   
+  // Calculate total stats using the Array.prototype.reduce method
   const totalViews = articles.reduce((sum, article) => sum + (article.views || 0), 0);
   const totalLikes = articles.reduce((sum, article) => sum + (article.likes || 0), 0);
   const totalShares = articles.reduce((sum, article) => sum + (article.shares || 0), 0);
   const totalComments = articles.reduce((sum, article) => sum + (article.commentCount || 0), 0);
 
+  // The component's main JSX structure
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg my-8 dark:bg-gray-900 transition-colors duration-300">
       <h2 className="text-3xl font-bold text-gray-800 mb-8 dark:text-gray-100">{t('yourArticlePerformance')}</h2>
 
+      {/* Buttons to filter articles by status */}
       <div className="flex mb-6 space-x-2 sm:space-x-4">
           <button
               onClick={() => setViewType('all')}
@@ -113,8 +128,10 @@ const PublisherAnalytics = () => {
           </button>
       </div>
 
+      {/* Conditional rendering based on whether articles exist */}
       {articles.length > 0 ? (
         <>
+          {/* Summary stats section */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-8">
             <div className="bg-gray-50 p-6 rounded-lg shadow flex items-center space-x-4 dark:bg-gray-800 dark:shadow-md">
               <FaEye className="text-4xl text-indigo-500 dark:text-indigo-400" />
@@ -146,6 +163,7 @@ const PublisherAnalytics = () => {
             </div>
           </div>
           
+          {/* Table to display article details and actions */}
           <div className="overflow-x-auto rounded-lg shadow-md dark:shadow-none">
             <table className="min-w-full leading-normal">
               <thead>
@@ -160,6 +178,7 @@ const PublisherAnalytics = () => {
                 </tr>
               </thead>
               <tbody>
+                {/* Map through the articles and create a table row for each */}
                 {articles.map((article) => (
                   <tr key={article._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors dark:border-gray-700 dark:hover:bg-gray-800">
                     <td className="py-4 px-6 text-left text-gray-700 font-medium whitespace-nowrap dark:text-gray-200">
@@ -191,9 +210,9 @@ const PublisherAnalytics = () => {
                       </Link>
                     </td>
                     <td className="py-4 px-6 text-center">
-                        {/* NEW: Container for the buttons */}
+                        {/* Container for the action buttons */}
                         <div className="flex justify-center space-x-2">
-                            {/* NEW: Edit button */}
+                            {/* Edit button */}
                             <Link 
                                 to={`/edit-article/${article._id}`}
                                 className="py-2 px-4 text-sm font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
@@ -217,6 +236,7 @@ const PublisherAnalytics = () => {
           </div>
         </>
       ) : (
+        // Message displayed when there are no articles for the selected view type
         <div className="text-center p-8 text-xl text-gray-500 dark:text-gray-400">
           {t('noArticlesFoundForAnalytics')}
         </div>

@@ -1,4 +1,4 @@
-// client/src/pages/ArticleList.jsx (Final Version with Dynamic Category Filters)
+// client/src/pages/ArticleList.jsx 
 
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
@@ -10,22 +10,31 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../context/ThemeContext';
 
-// Define the categories here, same as in CreateArticle.jsx and EditArticle.jsx
+// Define the categories, consistent across related components
 const categories = ['Sports', 'Technology', 'Science', 'Health', 'Business', 'Entertainment'];
 
+// This component displays a list of articles with filtering, searching, and sorting options.
 const ArticleList = () => {
   const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const { isDarkMode } = useContext(ThemeContext);
+  // State to hold the fetched articles
   const [articles, setArticles] = useState([]);
+  // State to manage loading status
   const [loading, setLoading] = useState(true);
+  // State to hold any error messages
   const [error, setError] = useState('');
+  // State for category and tag filters
   const [filters, setFilters] = useState({ category: '', tags: '' });
+  // State for the search term, used with a debounce effect
   const [searchTerm, setSearchTerm] = useState(''); 
   const navigate = useNavigate();
 
+  // State for the sorting criteria (date or views)
   const [sortBy, setSortBy] = useState('date'); 
 
+  // Effect hook to fetch articles based on filters, search term, and sort criteria.
+  // A debounce is used to prevent excessive API calls while the user is typing.
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       const fetchArticles = async () => {
@@ -35,6 +44,7 @@ const ArticleList = () => {
           const token = localStorage.getItem('token');
           let apiUrl = 'http://localhost:5001/api/articles';
   
+          // Combine all filters, search term, and sort criteria into a single object
           const combinedFilters = { ...filters, q: searchTerm, sortBy };
           
           const config = {
@@ -55,23 +65,28 @@ const ArticleList = () => {
 
       fetchArticles();
 
-    }, 500);
+    }, 500); // 500ms debounce delay
 
+    // Cleanup function to clear the timeout on re-render or unmount
     return () => clearTimeout(delayDebounceFn);
-  }, [filters, t, user, searchTerm, sortBy]);
+  }, [filters, t, user, searchTerm, sortBy]); // Dependencies for the effect
 
+  // Handler for changing the category filter
   const handleFilterChange = (newFilters) => {
     setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
   };
   
+  // Handler for the edit button, navigates to the edit page
   const handleEditClick = (articleId) => {
     navigate(`/edit-article/${articleId}`);
   };
 
+  // Handler for viewing an article, navigates to the article detail page
   const onViewArticleClick = (articleId) => {
     navigate(`/article/${articleId}`);
   };
 
+  // Conditional rendering for loading and error states
   if (loading) return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingArticles')}</div>;
   if (error) return <div className="text-center p-8 text-xl font-medium text-red-500">{error}</div>;
 
@@ -79,6 +94,7 @@ const ArticleList = () => {
     <div className="bg-white p-6 rounded-lg shadow-md dark:bg-black dark:text-gray-100 transition-colors duration-300">
       <h1 className="text-4xl font-bold text-gray-800 mb-6 dark:text-gray-100">{t('latestArticles')}</h1>
       
+      {/* Search and filter controls */}
       <div className="flex flex-col md:flex-row items-center justify-between mb-8 space-y-4 md:space-y-0 md:space-x-4">
         <input 
           type="text"
@@ -88,7 +104,7 @@ const ArticleList = () => {
           className="w-full md:w-1/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
         />
         <div className="flex flex-wrap space-x-2">
-          {/* Dynamically generated buttons for categories */}
+          {/* Dynamically generated buttons for category filters */}
           <button 
             onClick={() => handleFilterChange({ category: '' })} 
             className="py-2 px-4 rounded-lg font-medium text-sm transition-colors text-gray-600 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -107,6 +123,7 @@ const ArticleList = () => {
         </div>
       </div>
       
+      {/* Sort By dropdown */}
       <div className="flex justify-end mb-6">
         <label htmlFor="sort-by" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">{t('sortBy')}</label>
         <select 
@@ -120,11 +137,15 @@ const ArticleList = () => {
         </select>
       </div>
 
+      {/* Grid for displaying articles */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {articles.length > 0 ? (
           articles.map((article) => (
             <div key={article._id} className="relative">
+              {/* ArticleCard component to display each article's details */}
               <ArticleCard article={article} onViewArticleClick={onViewArticleClick} />
+              
+              {/* Conditional rendering of the Edit button for the article's author */}
               {user && article.author && user._id === article.author._id && (
                 <div className="absolute top-4 right-4 z-10">
                   <button
@@ -138,6 +159,7 @@ const ArticleList = () => {
             </div>
           ))
         ) : (
+          // Message displayed when no articles match the criteria
           <div className="col-span-full text-center text-gray-500 p-8 font-medium dark:text-gray-400">{t('noArticlesFound')}</div>
         )}
       </div>

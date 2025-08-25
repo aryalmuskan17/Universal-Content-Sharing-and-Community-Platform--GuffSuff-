@@ -1,4 +1,4 @@
-// client/src/pages/EditArticle.jsx (Final and Corrected)
+// client/src/pages/EditArticle.jsx 
 
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
@@ -8,24 +8,32 @@ import { UserContext } from '../context/UserContext';
 import { ThemeContext } from '../context/ThemeContext';
 import { toast } from 'react-toastify';
 
+// Define the categories, consistent with other components that use them.
 const categories = ['Sports', 'Technology', 'Science', 'Health', 'Business', 'Entertainment'];
 
+// This component provides a form to edit an existing article.
 const EditArticle = () => {
+  // Extract the article ID from the URL parameters
   const { articleId } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isDarkMode } = useContext(ThemeContext);
+  // Get the logged-in user from the context to check for their role
   const { user } = useContext(UserContext); // Get the user object from context
 
+  // State to hold the article data for the form
   const [article, setArticle] = useState({ 
     title: '', 
     content: '', 
     status: '',
     category: ''
   });
+  // State to manage loading status
   const [loading, setLoading] = useState(true);
+  // State for any error messages
   const [error, setError] = useState('');
   
+  // Effect hook to fetch the specific article's data when the component mounts or articleId changes
   useEffect(() => {
     const fetchArticle = async () => {
       try {
@@ -47,24 +55,31 @@ const EditArticle = () => {
     }
   }, [articleId]);
 
+  // Handler for text and select input changes
   const handleEditChange = (e) => {
     const { name, value } = e.target;
+    // Update the corresponding field in the article state
     setArticle(prevArticle => ({ ...prevArticle, [name]: value }));
   };
 
+  // Handler for form submission to update the article
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
+      // Store the original status to compare after the update
       const originalStatus = article.status;
       
+      // Send a PUT request with the updated article data
       const response = await axios.put(`http://localhost:5001/api/articles/${articleId}`, article, {
         headers: { 'x-auth-token': token }
       });
 
+      // Update the state with the new data from the response
       setArticle(response.data.data);
 
       const newStatus = response.data.data.status;
+      // Provide user feedback with a specific message if the status changed
       if (originalStatus !== newStatus) {
         toast.success(`Article status updated to: ${newStatus}`);
       } else {
@@ -78,9 +93,11 @@ const EditArticle = () => {
     }
   };
 
+  // Conditional rendering for loading state
   if (loading) {
     return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loading')}...</div>;
   }
+  // Conditional rendering for error state
   if (error) {
     return <div className="text-center p-8 text-red-500 font-medium">{error}</div>;
   }
@@ -90,6 +107,7 @@ const EditArticle = () => {
       <h2 className="text-3xl font-bold text-gray-800 mb-6 dark:text-gray-100">{t('editArticle')}</h2>
       
       <form onSubmit={handleUpdate} className="space-y-6">
+        {/* Title Input */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('title')}</label>
           <input
@@ -101,6 +119,8 @@ const EditArticle = () => {
             required
           />
         </div>
+        
+        {/* Content Textarea */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('content')}</label>
           <textarea
@@ -113,6 +133,7 @@ const EditArticle = () => {
           ></textarea>
         </div>
         
+        {/* Category Select */}
         <div>
           <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
             {t('category')}
@@ -133,7 +154,7 @@ const EditArticle = () => {
           </select>
         </div>
         
-        {/* CRITICAL FIX: Conditionally render the status dropdown */}
+        {/* CRITICAL FIX: Conditionally render the status dropdown for admins only */}
         {user && user.role === 'Admin' && (
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('status')}</label>
@@ -150,6 +171,7 @@ const EditArticle = () => {
           </div>
         )}
         
+        {/* Submit Button */}
         <button
           type="submit"
           className="w-full py-3 px-4 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

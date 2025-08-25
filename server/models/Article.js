@@ -1,4 +1,4 @@
-// server/models/Article.js (Updated with Comment Count Virtual)
+// server/models/Article.js 
 
 const mongoose = require('mongoose');
 
