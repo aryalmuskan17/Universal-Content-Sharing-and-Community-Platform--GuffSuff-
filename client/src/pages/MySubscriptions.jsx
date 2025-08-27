@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import { toast } from 'react-toastify';
+import { useTranslation } from "react-i18next";
 
 // This component allows a user to view and manage their subscriptions to publishers.
 const MySubscriptions = () => {
@@ -15,6 +16,7 @@ const MySubscriptions = () => {
     // State for any error messages
     const [error, setError] = useState(null);
     const { user } = useContext(UserContext);
+    const { t } = useTranslation();
 
     // State to store the individual donation history, indexed by publisher ID
     const [individualDonations, setIndividualDonations] = useState({});
@@ -24,14 +26,14 @@ const MySubscriptions = () => {
             // Initial authentication check
             if (!user) {
                 setLoading(false);
-                setError("You must be logged in to view your subscriptions.");
+                setError(t('mustBeLoggedInSubscriptions'));
                 return;
             }
 
             const token = localStorage.getItem('token');
             if (!token) {
                 setLoading(false);
-                setError("Authentication token not found.");
+                setError(t('authenticationTokenNotFound'));
                 return;
             }
 
@@ -78,7 +80,7 @@ const MySubscriptions = () => {
             } catch (err) {
                 console.error('Error fetching subscriptions:', err);
                 setError("Failed to fetch subscriptions. Please try again.");
-                toast.error("Failed to fetch subscriptions.");
+                toast.error(t('failedToFetchSubscriptions'));
             } finally {
                 setLoading(false);
             }
@@ -91,7 +93,7 @@ const MySubscriptions = () => {
     const handleUnsubscribe = async (publisherId) => {
         const token = localStorage.getItem('token');
         if (!token) {
-            toast.error("You are not logged in.");
+            toast.error(t('notLoggedIn'));
             return;
         }
 
@@ -106,17 +108,18 @@ const MySubscriptions = () => {
             
             // Optimistically update the UI by filtering out the unsubscribed publisher
             setPublishers(publishers.filter(p => p._id !== publisherId));
-            toast.success("Successfully unsubscribed.");
+            toast.success(t('successfullyUnsubscribed'));
             
         } catch (err) {
             console.error('Error unsubscribing:', err);
-            toast.error("Failed to unsubscribe.");
+            toast.error(t('failedToUnsubscribe'));
+
         }
     };
 
     // Conditional rendering for various states
     if (loading) {
-        return <div className="text-center p-8 text-gray-600 dark:text-gray-400">Loading subscriptions...</div>;
+        return <div className="text-center p-8 text-gray-600 dark:text-gray-400">{t('loadingSubscriptions')}</div>;
     }
 
     if (error) {
@@ -125,13 +128,13 @@ const MySubscriptions = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6 border-b-2 border-gray-300 dark:border-gray-700 pb-2">My Subscriptions</h1>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6 border-b-2 border-gray-300 dark:border-gray-700 pb-2">{t('mySubscriptions')}</h1>
             
             {/* Conditional rendering for when there are no subscriptions */}
             {publishers.length === 0 ? (
                 <div className="text-center p-12 text-gray-500 dark:text-gray-400 text-lg">
-                    <p>You are not subscribed to any publishers yet.</p>
-                    <p className="mt-2">Find a publisher you like and subscribe to their articles!</p>
+                    <p>{t('findAndSubscribe')}</p>
+                    <p className="mt-2">{t('findAndSubscribe')}</p>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -181,7 +184,7 @@ const MySubscriptions = () => {
                                     onClick={() => handleUnsubscribe(publisher._id)}
                                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                                 >
-                                    Unsubscribe
+                                    {t('unsubscribe')}
                                 </button>
                             </div>
                         </div>

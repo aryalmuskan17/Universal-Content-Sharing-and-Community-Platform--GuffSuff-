@@ -5,6 +5,7 @@ import axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from "react-i18next";
 
 // This component displays a list of a publisher's subscribers, including their donation data.
 const MySubscribers = () => {
@@ -17,6 +18,7 @@ const MySubscribers = () => {
     // Get the current user from the context
     const { user } = useContext(UserContext);
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     useEffect(() => {
         const fetchSubscribers = async () => {
@@ -48,11 +50,11 @@ const MySubscribers = () => {
                 console.error('Error fetching subscribers:', err);
                 // Handle specific error for access denied (e.g., if a non-publisher tries to access)
                 if (err.response && err.response.status === 403) {
-                    setError("Access Denied: You must be a Publisher to view this page.");
+                    setError(t('accessDeniedPublisher'));
                 } else {
-                    setError("Failed to fetch subscribers. Please try again.");
+                    setError(t('failedToFetchSubscribers'));
                 }
-                toast.error("Failed to fetch subscribers.");
+                toast.error(t('failedToFetchSubscribers'));
             } finally {
                 setLoading(false);
             }
@@ -63,7 +65,7 @@ const MySubscribers = () => {
 
     // Conditional rendering for various states
     if (loading) {
-        return <div className="text-center p-8 text-gray-600 dark:text-gray-400">Loading subscribers...</div>;
+        return <div className="text-center p-8 text-gray-600 dark:text-gray-400">{t('loadingSubscribers')}</div>;
     }
 
     if (error) {
@@ -72,12 +74,12 @@ const MySubscribers = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6 border-b-2 border-gray-300 dark:border-gray-700 pb-2">My Subscribers</h1>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6 border-b-2 border-gray-300 dark:border-gray-700 pb-2">{t('mySubscribers')}</h1>
             
             {/* Conditional rendering if there are no subscribers */}
             {subscribers.length === 0 ? (
                 <div className="text-center p-12 text-gray-500 dark:text-gray-400 text-lg">
-                    <p>You do not have any subscribers yet.</p>
+                    <p>{t('noSubscribersYet')}</p>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -111,7 +113,7 @@ const MySubscribers = () => {
                                 {/* Conditional rendering to show donation history if donations exist */}
                                 {subscriber.donations?.length > 0 && (
                                     <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-2">
-                                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Donation History</h3>
+                                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">{t('donationHistory')}</h3>
                                         <ul className="space-y-2">
                                             {subscriber.donations.map(donation => (
                                                 <li key={donation._id} className="text-gray-700 dark:text-gray-300">

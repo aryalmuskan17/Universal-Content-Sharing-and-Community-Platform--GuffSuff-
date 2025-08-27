@@ -221,7 +221,7 @@ const SingleArticle = () => {
               isLiked ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-500 hover:bg-indigo-600'
             }`}
           >
-            {isLiked ? 'Unlike' : 'Like'}
+            {isLiked ? t('unlike') : t('like')}
           </button>
           
           {/* Share Button */}
@@ -229,7 +229,7 @@ const SingleArticle = () => {
             onClick={handleShare}
             className="py-2 px-4 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
           >
-            Share
+            {t('share')}
           </button>
           
           {/* Edit button, only visible to the article's author */}
@@ -238,7 +238,7 @@ const SingleArticle = () => {
               to={`/edit-article/${articleId}`}
               className="py-2 px-4 text-sm font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
             >
-              Edit Article
+              {t('editArticle')}
             </Link>
           )}
 
@@ -256,13 +256,13 @@ const SingleArticle = () => {
             onClick={handleApprove}
             className="flex-1 py-2 text-sm font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
           >
-            Approve
+            {t('approve')}
           </button>
           <button
             onClick={handleReject}
             className="flex-1 py-2 text-sm font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
           >
-            Reject
+            {t('reject')}
           </button>
         </div>
       )}
@@ -293,15 +293,15 @@ const SingleArticle = () => {
       <div className="mt-10 flex flex-wrap gap-6 items-center text-gray-600 text-lg font-semibold dark:text-gray-400">
         <div className="flex items-center space-x-2">
             <span>{article.views || 0}</span>
-            <span>Views</span>
+            <span>{t('views')}</span>
         </div>
         <div className="flex items-center space-x-2">
             <span>{article.likes || 0}</span>
-            <span>Likes</span>
+            <span>{t('likes')}</span>
         </div>
         <div className="flex items-center space-x-2">
             <span>{article.shares || 0}</span>
-            <span>Shares</span>
+            <span>{t('shares')}</span>
         </div>
         
         {/* Donation Section, only visible to a Reader for another publisher's article */}
@@ -313,7 +313,7 @@ const SingleArticle = () => {
                   onClick={() => setShowDonationInput(true)}
                   className="py-2 px-4 text-sm font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
                 >
-                  Donate
+                  {t('donate')}
                 </button>
               ) : (
                 // Show input and "Pay" button when donating
@@ -324,7 +324,7 @@ const SingleArticle = () => {
                     onChange={(e) => setDonationAmount(e.target.value)}
                     min="1"
                     className="w-24 px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                    placeholder="Amount"
+                    placeholder={t('amount')}
                   />
                   {/* PayButton component handles the payment logic */}
                   <PayButton
@@ -342,7 +342,7 @@ const SingleArticle = () => {
                     }}
                     className="py-2 px-4 text-sm font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
                   >
-                    Cancel
+                    {t('cancel')}
                   </button>
                 </>
               )}

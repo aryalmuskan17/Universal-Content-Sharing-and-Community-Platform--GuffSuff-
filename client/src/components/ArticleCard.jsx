@@ -37,12 +37,12 @@ const ArticleCard = ({ article }) => {
   const handleLike = async (e) => {
     e.stopPropagation();
     if (!user) { // Check if the user is logged in
-      toast.info('Please log in to like this article.');
+      toast.info(t('loginToLikeMessage'));
       navigate('/login');
       return;
     }
     if (isLiked) { // Check if the user has already liked it
-      toast.info('You have already liked this article.');
+      toast.info(t('alreadyLikedMessage'));
       return;
     }
     try {
@@ -56,9 +56,9 @@ const ArticleCard = ({ article }) => {
         likedBy: [...(prevArticle.likedBy || []), user._id]
       }));
       
-      toast.success('Article liked!');
+      toast.success(t('articleLikedSuccess'));
     } catch (err) {
-      toast.error('Failed to like article.');
+      toast.error(t('articleLikeFailure'));
       console.error(err);
     }
   };
@@ -92,7 +92,7 @@ const ArticleCard = ({ article }) => {
   const handleShare = async (e) => {
     e.stopPropagation();
     if (!user) {
-      toast.info('Please log in to share this article.');
+      toast.info(t('loginToShareMessage'));
       navigate('/login');
       return;
     }
@@ -102,7 +102,7 @@ const ArticleCard = ({ article }) => {
       
       await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/share`);
       
-      toast.success('Link copied to clipboard and share count updated!');
+      toast.error(t('articleShareFailure'));
     } catch (err) {
       toast.error('Failed to copy link or share article.');
       console.error(err);
@@ -126,9 +126,9 @@ const ArticleCard = ({ article }) => {
         config
       );
       setCurrentArticle(res.data.data); // Update article state with new data from the server
-      toast.success(`Article has been ${newStatus}.`);
+      toast.success(t('articleStatusChangeSuccess', { status: newStatus }));
     } catch (err) {
-      toast.error(`Failed to change article status.`);
+      toast.error(t('articleStatusChangeFailure'));
       console.error(err);
     }
   };
@@ -213,20 +213,20 @@ const ArticleCard = ({ article }) => {
         <div className="mt-4 flex flex-wrap gap-4 items-center text-gray-500 text-sm dark:text-gray-400">
           <div className="flex items-center space-x-1">
             <span className="font-semibold">{currentArticle.views || 0}</span>
-            <span>Views</span>
+            <span>{t('views')}</span>
           </div>
           <div className="flex items-center space-x-1">
             <span className="font-semibold">{currentArticle.likes || 0}</span>
-            <span>Likes</span>
+            <span>{t('likes')}</span>
           </div>
           <div className="flex items-center space-x-1">
             <span className="font-semibold">{currentArticle.shares || 0}</span>
-            <span>Shares</span>
+            <span>{t('shares')}</span>
           </div>
           
           <div className="flex items-center space-x-1">
             <span className="font-semibold">{currentArticle.commentCount || 0}</span>
-            <span>Comments</span>
+            <span>{t('comments')}</span>
           </div>
           
           {/* Formatted date */}
@@ -244,13 +244,13 @@ const ArticleCard = ({ article }) => {
                 onClick={handleApprove}
                 className="flex-1 py-2 text-sm font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
               >
-                Approve
+                {t('approve')}
               </button>
               <button
                 onClick={handleReject}
                 className="flex-1 py-2 text-sm font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
               >
-                Reject
+                {t('reject')}
               </button>
             </>
           ) : (
@@ -262,20 +262,20 @@ const ArticleCard = ({ article }) => {
                   isLiked ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-500 hover:bg-indigo-600'
                 }`}
               >
-                {isLiked ? 'Unlike' : 'Like'}
+                {isLiked ? t('unlike') : t('like')}
               </button>
               <button
                 onClick={handleShare}
                 className="flex-1 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
               >
-                Share
+                {t('share')}
               </button>
               
               <button
                 onClick={handleCommentClick}
                 className="flex-1 py-2 text-sm font-semibold text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors"
               >
-                Comment
+                {t('comment')}
               </button>
             </>
           )}

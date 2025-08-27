@@ -62,7 +62,7 @@ const FullAdminDashboard = () => {
       fetchAllArticles();
     } catch (err) {
       console.error('Failed to update article status:', err);
-      toast.error('Failed to update article status.');
+      toast.error(t('failedToUpdateArticleStatus'));
     }
   };
 
@@ -77,7 +77,7 @@ const FullAdminDashboard = () => {
       setIsModalOpen(true);
     } catch (err) {
       console.error('Failed to fetch article details:', err);
-      toast.error('Failed to load article details.');
+      toast.error(t('failedToLoadArticleDetails'));
     }
   };
 
@@ -136,7 +136,7 @@ const FullAdminDashboard = () => {
                       article.status === 'rejected' ? 'bg-red-200 text-red-700 dark:bg-red-700 dark:text-red-100' :
                       'bg-yellow-200 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100'
                     }`}>
-                      {article.status}
+                      {t(article.status)}
                     </span>
                   </td>
                   <td className="py-4 px-6 text-center flex justify-center items-center space-x-2">
@@ -200,7 +200,7 @@ const FullAdminDashboard = () => {
                       selectedArticle.status === 'rejected' ? 'bg-red-200 text-red-700 dark:bg-red-700 dark:text-red-100' :
                       'bg-yellow-200 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100'
                     }`}>
-                      {selectedArticle.status}
+                      {t(selectedArticle.status)}
                     </span>
               </p>
               {/* Display the full article content */}

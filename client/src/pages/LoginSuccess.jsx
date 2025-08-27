@@ -57,7 +57,7 @@ const LoginSuccess = () => {
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
       <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-        <p className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Logging you in...</p>
+        <p className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">{t('loggingYouIn')}</p>
         <div className="flex justify-center">
           {/* Simple loading spinner to show the user that a process is underway */}
           <svg className="animate-spin h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

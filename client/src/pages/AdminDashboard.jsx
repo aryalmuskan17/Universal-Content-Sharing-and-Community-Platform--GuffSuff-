@@ -125,7 +125,7 @@ const AdminDashboard = () => {
                     <span className="font-semibold text-gray-700 dark:text-gray-300">{t('author')}:</span> {article.author.username}
                   </span>
                   <span>
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">{t('category')}:</span> {article.category}
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">{t('category')}:</span> {t(article.category)}
                   </span>
                 </div>
                 <div className="mt-6 flex space-x-4">

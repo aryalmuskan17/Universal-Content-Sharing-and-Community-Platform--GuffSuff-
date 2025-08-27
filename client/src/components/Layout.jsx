@@ -62,22 +62,22 @@ const Layout = () => {
                         {user && (user.role === 'Publisher' || user.role === 'Admin') && (
                             <>
                                 <button onClick={() => navigate('/create-article')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('createArticle')}</button>
-                                <button onClick={() => navigate('/publisher-analytics')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Analytics</button>
+                                <button onClick={() => navigate('/publisher-analytics')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('analytics')}</button>
                             </>
                         )}
 
                         {/* Button visible only to Publishers */}
                         {user && user.role === 'Publisher' && (
-                                 <button onClick={() => navigate('/my-subscribers')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Subscribers</button>
+                                 <button onClick={() => navigate('/my-subscribers')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('subscribers')}</button>
                         )}
                         
                         {/* Buttons visible only to Admins */}
                         {user?.role === 'Admin' && (
                             <>
                                 <button onClick={() => navigate('/admin-dashboard')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('adminDashboard')}</button>
-                                <button onClick={() => navigate('/full-admin-dashboard')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Full CMS Dashboard</button>
-                                <button onClick={() => navigate('/analytics-dashboard')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Admin Analytics</button>
-                                <button onClick={() => navigate('/user-management')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Manage Users</button>
+                                <button onClick={() => navigate('/full-admin-dashboard')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('fullCmsDashboard')}</button>
+                                <button onClick={() => navigate('/analytics-dashboard')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('adminAnalytics')}</button>
+                                <button onClick={() => navigate('/user-management')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('manageUsers')}</button>
                             </>
                         )}
                     </div>
@@ -108,7 +108,7 @@ const Layout = () => {
                             {/* Conditionally render My Subscriptions button only for Readers */}
                             {user.role === 'Reader' && (
                                 <button onClick={() => navigate('/my-subscriptions')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                                    My Subscriptions
+                                    {t('mySubscriptions')}
                                 </button>
                             )}
                             <span className="text-sm font-medium hidden md:block">

@@ -47,7 +47,7 @@ const EditArticle = () => {
         console.error('Failed to fetch article:', err);
         setError('Failed to fetch article.');
         setLoading(false);
-        toast.error('Failed to fetch article.');
+        toast.error(t('failedToFetchArticle'));
       }
     };
     if (articleId) {
@@ -81,15 +81,15 @@ const EditArticle = () => {
       const newStatus = response.data.data.status;
       // Provide user feedback with a specific message if the status changed
       if (originalStatus !== newStatus) {
-        toast.success(`Article status updated to: ${newStatus}`);
+        toast.success(t('articleStatusUpdatedTo', { status: newStatus }));
       } else {
-        toast.success('Article updated successfully!');
+        toast.success(t('articleUpdatedSuccessfully'));
       }
 
     } catch (err) {
       console.error('Failed to update article:', err);
       setError('Failed to update article.');
-      toast.error('Failed to update article.');
+      toast.error(t('failedToUpdateArticle'));
     }
   };
 
@@ -148,7 +148,7 @@ const EditArticle = () => {
             <option value="" disabled>{t('selectCategory')}</option>
             {categories.map((cat, index) => (
               <option key={index} value={cat}>
-                {cat}
+                {t(cat)}
               </option>
             ))}
           </select>

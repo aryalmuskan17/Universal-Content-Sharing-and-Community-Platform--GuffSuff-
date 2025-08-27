@@ -111,15 +111,15 @@ const ArticleList = () => {
           >
             {t('all')}
           </button>
-          {categories.map((cat, index) => (
-            <button 
-              key={index}
-              onClick={() => handleFilterChange({ category: cat })} 
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => handleFilterChange({ category: cat })}
               className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
-            >
-              {cat}
+              >
+              {t(cat)}
             </button>
-          ))}
+              ))}
         </div>
       </div>
       

@@ -86,7 +86,7 @@ const AnalyticsDashboard = () => {
             {analyticsData.articlesByStatus.map(item => (
               <li key={item._id} className="flex justify-between items-center text-lg text-gray-700 dark:text-gray-200">
                 {/* Capitalize the first letter of the status for display */}
-                <span>{item._id.charAt(0).toUpperCase() + item._id.slice(1)}:</span>
+                <span>{t(item._id)}:</span>
                 <span className="font-bold">{item.count}</span>
               </li>
             ))}
