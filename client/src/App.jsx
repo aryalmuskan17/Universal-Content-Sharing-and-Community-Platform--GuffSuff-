@@ -1,5 +1,5 @@
 // client/src/App.jsx
-
+// Test comment to verify the push workflow on new repo creation
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
