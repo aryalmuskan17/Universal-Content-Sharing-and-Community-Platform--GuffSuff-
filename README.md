@@ -15,9 +15,8 @@
   * **Feature 8**:• Structured Dashboards for Each Role: Role-specific dashboards for administrators and publishers to monitor their actions, performance, and contributions.
   * **Feature 9**:• Clean, Responsive User Interface (UI): Designed with Tailwind CSS (or Bootstrap) to create a user-friendly interface optimized for all devices (desktop and mobile), ensuring a smooth user experience.
   * **Feature 10**:• Efficient Content and Role Management: Streamlined handling of diverse content types and secure access control.
-  * **Feature 11**:• Robust Payment & Subscription System: The platform is equipped with a complete payment and subscription feature, allowing readers to subscribe to publishers. The system includes a dedicated payment flow with success and failure redirects, handled by a robust backend.
+  * **Feature 11**:• Robust Payment & Subscription System: The platform is equipped with a complete payment and subscription feature, allowing readers to directly pay publishers via eSewa. The system includes a dedicated and secure payment flow with success and failure redirects, all handled by a robust backend.
   * **Feature 12**:• Google OAuth Integration: Offers a convenient, one-click login option via Google. This modern authentication method streamlines the user onboarding process, enhancing user experience and security.
-  * **Feature 13**:• Advanced API Endpoints: The backend features a well-defined and modular API with dedicated routes for analytics, articles, and user authentication. This architecture ensures efficient data handling and supports all frontend functionalities, including real-time notifications and content management.
 
 ### **Tech Stack**
 
@@ -25,7 +24,7 @@
   * **Backend**: `Node.js`, `Express.js`, `Nodemon`
   * **Database**: `MongoDB`
   * **Styling**: `Tailwind CSS`
-  * **Other**: `JWT` for authentication, `Stripe` for payments, etc.
+  * **Other**: `JWT` for authentication, `E-sewa` for payments, etc.
 
 ### **Installation**
 
