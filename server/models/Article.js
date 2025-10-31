@@ -5,6 +5,12 @@ const mongoose = require('mongoose');
 const ArticleSchema = new mongoose.Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
+  // AI Summarized field
+  summary: { 
+    type: String,
+    default: '',
+    maxlength: 300 // Limiting the summary length for accuracy
+  },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   tags: [String],
   category: String,

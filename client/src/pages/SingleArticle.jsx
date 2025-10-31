@@ -285,6 +285,17 @@ const SingleArticle = () => {
               )}
           </div>
       )}
+
+      {/* NEW AI SUMMARY DISPLAY SECTION */}
+      {article.summary && article.summary !== 'A detailed summary is pending.' && (
+          <div className={`mt-8 mb-6 p-4 border-l-4 rounded-lg shadow-inner ${isDarkMode ? 'bg-gray-800 border-indigo-500 text-gray-200' : 'bg-indigo-50 border-indigo-600 text-gray-800'}`}>
+              <h3 className="text-lg font-bold mb-1 flex items-center">
+                  ✨ Quick Summary
+              </h3>
+              <p className="italic">{article.summary}</p>
+          </div>
+      )}
+      {/*END: NEW AI SUMMARY DISPLAY SECTION */}
       
       {/* Article Content */}
       <div className="prose prose-lg max-w-none text-gray-700 dark:prose-invert dark:text-gray-300" dangerouslySetInnerHTML={{ __html: article.content }}></div>

@@ -1,4 +1,5 @@
 const express = require('express');
+const { generateSummary } = require('../utils/aiSummarizer');
 const router = express.Router();
 const mongoose = require('mongoose');
 const Article = require('../models/Article');
@@ -22,9 +23,19 @@ const upload = multer({ storage: storage });
 router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (req, res) => {
   try {
     const { title, content, tags, category, language } = req.body;
+    // GENERATE AI SUMMARY FOR THE ARTICLE CONTENT
+    let summary = '';
+    try {
+        summary = await generateSummary(content);
+        console.log('AI Summary Generated:', summary);
+    } catch (error) {
+        console.error('Failed to generate summary, proceeding with empty field.', error);
+        summary = 'A detailed summary is pending.'; 
+    }
     let articleData = {
       title,
       content,
+      summary, // Store the generated summary
       author: req.user.id,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
       category,
