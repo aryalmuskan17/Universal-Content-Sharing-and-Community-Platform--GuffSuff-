@@ -172,5 +172,10 @@
   "findAndSubscribe": "तपाईंलाई मन पर्ने प्रकाशक खोज्नुहोस् र तिनीहरूका लेखहरूको सदस्यता लिनुहोस्!",
   "notLoggedIn": "तपाईं लगइन हुनुहुन्न।",
   "successfullyUnsubscribed": "सदस्यता सफलतापूर्वक रद्द गरियो।",
-  "failedToUnsubscribe": "सदस्यता रद्द गर्न असफल भयो।"
+  "failedToUnsubscribe": "सदस्यता रद्द गर्न असफल भयो।",
+  "categoryDistribution": "लेख वर्गीकरण वितरण",
+  "numberOfArticles": "लेखहरूको संख्या",
+  "mostReadArticles": "सबैभन्दा बढी पढिएका लेखहरू",
+  "visitorTrends": "दर्शकहरूको रुझान (समय अनुसार)",
+  "Views": "पटक हेरिएको"
 }

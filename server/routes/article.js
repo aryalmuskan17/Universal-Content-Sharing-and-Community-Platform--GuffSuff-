@@ -391,6 +391,7 @@ router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res
           likes: 1,
           shares: 1,
           createdAt: 1,
+          category: 1,
           author: { $arrayElemAt: ['$authorDetails', 0] },
           commentCount: 1,
         }

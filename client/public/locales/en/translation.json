@@ -178,5 +178,10 @@
   "findAndSubscribe": "Find a publisher you like and subscribe to their articles!",
   "notLoggedIn": "You are not logged in.",
   "successfullyUnsubscribed": "Successfully unsubscribed.",
-  "failedToUnsubscribe": "Failed to unsubscribe."
+  "failedToUnsubscribe": "Failed to unsubscribe.",
+  "categoryDistribution": "Article Category Distribution",
+  "numberOfArticles": "Number of Articles",
+  "mostReadArticles": "Most Read Articles",
+  "visitorTrends": "Visitor Trends Over Time",
+  "Views": "Views"
 }
