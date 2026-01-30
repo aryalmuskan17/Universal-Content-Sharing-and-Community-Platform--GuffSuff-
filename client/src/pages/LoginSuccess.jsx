@@ -3,6 +3,8 @@
 import React, { useEffect, useContext, useState } from 'react'; // ADDED useState
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
+import { useTranslation } from 'react-i18next';
+
 
 // This component is specifically for handling the OAuth callback after a successful third-party login (e.g., Google).
 // It's responsible for extracting the token from the URL, authenticating the user, and redirecting them.
@@ -10,6 +12,8 @@ const LoginSuccess = () => {
   const navigate = useNavigate();
   // Access the `login` function from the UserContext to update the application's auth state
   const { login } = useContext(UserContext);
+  const { t } = useTranslation();
+
   
   // NEW: A state flag to ensure the redirection logic only runs once per component mount.
   // This prevents issues with React's strict mode causing a double-redirect.
