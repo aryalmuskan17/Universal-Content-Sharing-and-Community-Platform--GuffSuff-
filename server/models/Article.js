@@ -9,7 +9,7 @@ const ArticleSchema = new mongoose.Schema({
   summary: { 
     type: String,
     default: '',
-    maxlength: 300 // Limiting the summary length for accuracy
+    maxlength: 500 // Limiting the summary length for accuracy
   },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   tags: [String],

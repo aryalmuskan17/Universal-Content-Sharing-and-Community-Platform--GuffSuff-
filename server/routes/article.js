@@ -25,13 +25,7 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
     const { title, content, tags, category, language } = req.body;
     // GENERATE AI SUMMARY FOR THE ARTICLE CONTENT
     let summary = '';
-    try {
-        summary = await generateSummary(content);
-        console.log('AI Summary Generated:', summary);
-    } catch (error) {
-        console.error('Failed to generate summary, proceeding with empty field.', error);
-        summary = 'A detailed summary is pending.'; 
-    }
+    
     let articleData = {
       title,
       content,
@@ -154,6 +148,7 @@ router.get('/', async (req, res) => {
           _id: '$_id', 
           title: '$title',
           content: '$content',
+          summary: '$summary',
           author: { $arrayElemAt: ['$authorDetails', 0] },
           status: '$status',
           tags: '$tags',
@@ -552,6 +547,26 @@ router.delete('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
   } catch (err) {
     console.error('An error occurred deleting the article:', err);
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+// @route   GET /api/articles/:id/summarize
+// @desc    Generate an AI summary on demand
+router.get('/:id/summarize', auth(), async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ success: false, message: 'Article not found' });
+
+    // Generate the summary using the utility
+    const generatedSummary = await generateSummary(article.content);
+
+    // Save it to the article so it's cached for future readers
+    article.summary = generatedSummary;
+    await article.save();
+
+    res.status(200).json({ success: true, summary: generatedSummary });
+  } catch (err) {
+    console.error('AI Summarization Error:', err);
+    res.status(500).json({ success: false, error: 'Failed to generate summary' });
   }
 });
 module.exports = router;

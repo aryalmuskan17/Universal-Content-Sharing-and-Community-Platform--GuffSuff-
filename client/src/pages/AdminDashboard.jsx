@@ -63,7 +63,7 @@ const AdminDashboard = () => {
       
       // Optimistically update the UI by removing the article from the list
       setPendingArticles(pendingArticles.filter(article => article._id !== articleId));
-      toast.success(t('articleStatusUpdated'));
+      toast.success(t('articleStatusUpdatedSuccessfully'));
     } catch (err) {
       setError(t('failedToUpdateArticleStatus'));
       toast.error(t('failedToUpdateArticleStatus'));
@@ -125,7 +125,7 @@ const AdminDashboard = () => {
                     <span className="font-semibold text-gray-700 dark:text-gray-300">{t('author')}:</span> {article.author.username}
                   </span>
                   <span>
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">{t('category')}:</span> {t(article.category)}
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">{t('category')}:</span> {article.category ? t(article.category.toLowerCase()) : t('uncategorized')}
                   </span>
                 </div>
                 <div className="mt-6 flex space-x-4">

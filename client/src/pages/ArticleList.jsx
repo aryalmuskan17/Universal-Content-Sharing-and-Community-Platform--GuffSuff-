@@ -117,7 +117,7 @@ const ArticleList = () => {
               onClick={() => handleFilterChange({ category: cat })}
               className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
               >
-              {t(cat)}
+              {t(cat.toLowerCase())}
             </button>
               ))}
         </div>

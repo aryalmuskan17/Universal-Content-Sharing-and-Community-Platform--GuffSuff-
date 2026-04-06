@@ -324,7 +324,7 @@ const getSimulatedVisitorTrendsData = () => {
                                   beginAtZero: true,
                                   title: {
                                       display: true,
-                                      text: t('Views'),
+                                      text: t('views'),
                                   }
                               }
                           }

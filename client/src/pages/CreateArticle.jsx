@@ -185,7 +185,7 @@ const CreateArticle = () => {
               <option value="" disabled>{t('selectCategory')}</option>
               {categories.map((cat, index) => (
                 <option key={index} value={cat}>
-                  {t(cat)}
+                  {t(cat.toLowerCase())}
                 </option>
               ))}
             </select>

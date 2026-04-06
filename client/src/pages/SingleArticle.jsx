@@ -22,6 +22,7 @@ const SingleArticle = () => {
   const [article, setArticle] = useState(null);
   // State for loading status
   const [loading, setLoading] = useState(true);
+  const [summarizing, setSummarizing] = useState(false);
   // `useRef` to ensure the view count is incremented only once per page load, not on every re-render
   const isViewIncremented = useRef(false);
   const { t } = useTranslation();
@@ -184,6 +185,25 @@ const SingleArticle = () => {
   const handleApprove = () => handleStatusChange('published');
   const handleReject = () => handleStatusChange('rejected');
 
+  const handleGetSummary = async () => {
+    setSummarizing(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`http://localhost:5001/api/articles/${articleId}/summarize`, {
+        headers: { 'x-auth-token': token }
+      });
+      
+      // Update the local article state with the new summary
+      setArticle(prev => ({ ...prev, summary: res.data.summary }));
+      toast.success('AI Summary generated!');
+    } catch (err) {
+      toast.error('AI was unable to summarize this article right now.');
+      console.error(err);
+    } finally {
+      setSummarizing(false);
+    }
+  };
+
   // Conditional rendering for loading and error states
   if (loading) {
     return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingArticle')}</div>;
@@ -286,16 +306,41 @@ const SingleArticle = () => {
           </div>
       )}
 
-      {/* NEW AI SUMMARY DISPLAY SECTION */}
-      {article.summary && article.summary !== 'A detailed summary is pending.' && (
-          <div className={`mt-8 mb-6 p-4 border-l-4 rounded-lg shadow-inner ${isDarkMode ? 'bg-gray-800 border-indigo-500 text-gray-200' : 'bg-indigo-50 border-indigo-600 text-gray-800'}`}>
-              <h3 className="text-lg font-bold mb-1 flex items-center">
-                  ✨ Quick Summary
-              </h3>
-              <p className="italic">{article.summary}</p>
+      {/* ON-DEMAND AI SUMMARY SECTION */}
+      <div className={`mt-8 mb-6 p-4 border-l-4 rounded-lg shadow-inner transition-all duration-500 ${
+        isDarkMode ? 'bg-gray-800 border-indigo-500 text-gray-200' : 'bg-indigo-50 border-indigo-600 text-gray-800'
+      }`}>
+        {article.summary && article.summary !== 'A detailed summary is pending.' && !summarizing ? (
+          <>
+            <h3 className="text-lg font-bold mb-1 flex items-center">✨ Quick Summary</h3>
+            <p className="italic">{article.summary}</p>
+          </>
+        ) : (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold mb-1 flex items-center">✨ AI Summary</h3>
+              <p className="text-sm opacity-80">Don't have time to read the whole thing? Get a 3-sentence summary.</p>
+            </div>
+            <button
+              onClick={handleGetSummary}
+              disabled={summarizing}
+              className={`px-6 py-2 rounded-full font-bold text-white shadow-md transition-all ${
+                summarizing 
+                ? 'bg-gray-500 cursor-not-allowed' 
+                : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95'
+              }`}
+            >
+              {summarizing ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-pulse">✨</span> Thinking...
+                </span>
+              ) : (
+                'Summarize with AI'
+              )}
+            </button>
           </div>
-      )}
-      {/*END: NEW AI SUMMARY DISPLAY SECTION */}
+        )}
+      </div>
       
       {/* Article Content */}
       <div className="prose prose-lg max-w-none text-gray-700 dark:prose-invert dark:text-gray-300" dangerouslySetInnerHTML={{ __html: article.content }}></div>
