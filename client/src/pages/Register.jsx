@@ -8,13 +8,14 @@ import { ThemeContext } from '../context/ThemeContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { FaSun, FaMoon } from 'react-icons/fa';
 import Logo from '../assets/logo.png';
 
 // This component handles user registration, supporting both standard email/password sign-up and Google OAuth.
 const Register = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { login } = useContext(UserContext);
-  const { isDarkMode } = useContext(ThemeContext);
+  const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
   // `useSearchParams` is used to read data passed in the URL's query string (e.g., from a Google OAuth redirect).
   const [searchParams] = useSearchParams();
@@ -30,7 +31,10 @@ const Register = () => {
 
   // State to store the Google ID if the user is redirected from Google OAuth
   const [googleId, setGoogleId] = useState(null);
-
+  const toggleLanguage = () => {
+  const newLang = i18n.language === 'en' ? 'ne' : 'en';
+  i18n.changeLanguage(newLang);
+    };
   // Effect hook to check the URL for Google user data on component load.
   useEffect(() => {
     const googleIdFromUrl = searchParams.get("googleId");
@@ -95,7 +99,37 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 dark:bg-gray-800 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 dark:bg-black transition-colors duration-300 relative">
+
+      <div className="absolute top-6 right-6 flex items-center space-x-3">
+        <button 
+          onClick={toggleLanguage}
+          className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+        >
+          {i18n.language === 'en' ? (
+            <span className="flex items-center space-x-2">
+              <img src="https://flagcdn.com/w40/gb.png" alt="English" className="w-5 h-auto rounded-sm" />
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-200">EN</span>
+            </span>
+          ) : (
+            <span className="flex items-center space-x-2">
+              <img src="https://flagcdn.com/w40/np.png" alt="Nepali" className="w-4 h-auto" />
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-200">NE</span>
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={toggleDarkMode}
+          className="p-2.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+        >
+          {isDarkMode ? (
+            <FaSun className="text-yellow-400 text-xl" />
+          ) : (
+            <FaMoon className="text-gray-600 text-xl" />
+          )}
+        </button>
+      </div>
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg dark:bg-gray-900 dark:shadow-none">
         
         {/* Logo and Name Section */}
