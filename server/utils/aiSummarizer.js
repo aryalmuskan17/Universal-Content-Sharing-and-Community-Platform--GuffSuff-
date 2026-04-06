@@ -1,42 +1,55 @@
 // server/utils/aiSummarizer.js
 
-const { OpenAI } = require('openai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Initialize OpenAI client
-// The API key is automatically read from the OPENAI_API_KEY environment variable
-const openai = new OpenAI(); 
+// Initialize Google Generative AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 /**
- * Generates a concise summary for a given article content using the OpenAI API.
+ * Generates a concise summary for a given article content using the Google Gemini API.
  * @param {string} content - The full text content of the article.
- * @returns {Promise<string>} The generated summary string.
+ * @returns {Promise<string>} The generated summary string (max 300 chars).
  */
 async function generateSummary(content) {
     if (!content || content.length < 50) {
         return "Content is too short to generate a meaningful summary.";
     }
 
-    const prompt = `Please provide a concise summary of the following article content. The summary must be under 300 characters and focus on the main topic and key takeaways. Article: \n\n${content}`;
-
     try {
-        const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo", // A fast and cost-effective model for summarization
-            messages: [
-                { role: "system", content: "You are an expert editor specializing in writing extremely concise and accurate article summaries, limited to 300 characters." },
-                { role: "user", content: prompt }
-            ],
-            max_tokens: 100, // Sufficient tokens to generate a short summary
-            temperature: 0.3, // Lower temperature for more focused, factual output
+        // UPDATED FOR 2026: Using the stable Gemini 3.1 Flash-Lite preview
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-3.1-flash-lite-preview",
+            generationConfig: {
+                maxOutputTokens: 120, // Keep it short
+                temperature: 0.3, 
+            }
         });
 
-        // The summary is typically in the first choice's message content
-        const summary = response.choices[0].message.content.trim();
-        return summary;
+        const prompt = `Summarize the following article for GuffSuff. 
+                        Keep it under 250 characters and focus on the main takeaway.
+                        
+                        Article: \n\n${content}`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let summary = response.text().trim();
+
+        // SAFETY CROP: Absolute check to ensure it fits your 300-char DB limit
+        if (summary.length > 300) {
+            summary = summary.substring(0, 297) + "...";
+        }
+
+        return summary || "Summary could not be generated.";
         
     } catch (error) {
-        console.error("OpenAI Summary Generation Error:", error.message);
-        // Return a helpful error message instead of failing the entire route
-        return `Failed to generate AI summary: ${error.message}`;
+        console.error("Gemini Summary Generation Error:", error.message);
+        
+        // Return a short string to prevent Mongoose validation errors
+        if (error.message.includes("429")) {
+            return "AI busy (Rate limit). Try again in a minute.";
+        }
+        
+        return "Summary failed to generate due to an AI error.";
     }
 }
 
