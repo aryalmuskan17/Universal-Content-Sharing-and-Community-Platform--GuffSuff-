@@ -42,10 +42,15 @@ router.post('/', auth(['Publisher', 'Admin']), upload.single('media'), async (re
       language,
     };
     
-    if (req.user.role === 'Publisher') {
-      articleData.status = 'pending';
-    } else { 
-      articleData.status = req.body.status || 'draft';
+    if (req.user.role === 'Admin') {
+        // Admins default to 'published' unless they explicitly send another status
+        articleData.status = req.body.status || 'published';
+    } else if (req.user.role === 'Publisher') {
+        // Publishers always go to 'pending' as per your requirement
+        articleData.status = 'pending';
+    } else {
+        // Fallback for safety
+        articleData.status = 'draft';
     }
 
     if (req.file) { 

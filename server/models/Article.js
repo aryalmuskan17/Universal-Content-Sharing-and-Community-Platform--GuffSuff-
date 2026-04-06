@@ -14,7 +14,7 @@ const ArticleSchema = new mongoose.Schema({
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   tags: [String],
   category: String,
-  status: { type: String, enum: ['pending', 'approved', 'rejected', 'published'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'approved', 'rejected', 'published', 'draft'], default: 'pending' },
   language: { type: String, enum: ['en', 'ne'], default: 'en' },
   mediaUrl: String, 
   
