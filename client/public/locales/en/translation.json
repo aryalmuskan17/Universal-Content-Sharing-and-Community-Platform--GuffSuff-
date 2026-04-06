@@ -108,6 +108,8 @@
   "role": "Role",
   "admin": "Admin",
   "notifications": "Notifications",
+  "noNotifications": "No new notifications",
+  "markAsRead": "Mark as Read",
   "loadingProfile": "Loading profile...",
   "changeUsername": "Change Username",
   "bio": "Bio",

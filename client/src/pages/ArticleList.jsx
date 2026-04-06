@@ -124,13 +124,18 @@ const ArticleList = () => {
       </div>
       
       {/* Sort By dropdown */}
-      <div className="flex justify-end mb-6">
-        <label htmlFor="sort-by" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">{t('sortBy')}</label>
+      <div className="flex justify-end items-center mb-6">
+        <label 
+          htmlFor="sort-by" 
+          className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          {t('sortBy')}:
+        </label>
         <select 
           id="sort-by"
           value={sortBy} 
           onChange={(e) => setSortBy(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+          className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 cursor-pointer"
         >
           <option value="date">{t('newestFirst')}</option>
           <option value="views">{t('mostViewed')}</option>

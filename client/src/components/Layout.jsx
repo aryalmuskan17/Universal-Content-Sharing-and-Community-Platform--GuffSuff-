@@ -14,7 +14,6 @@ const Layout = () => {
     const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
     const navigate = useNavigate();
 
-    // Toggle logic: Switches to the language that isn't currently active
     const toggleLanguage = () => {
         const newLang = i18n.language === 'en' ? 'ne' : 'en';
         i18n.changeLanguage(newLang);
@@ -27,47 +26,39 @@ const Layout = () => {
 
     return (
         <div className="min-h-screen flex flex-col font-sans bg-gray-100 dark:bg-black dark:text-gray-100 transition-colors duration-300">
-            <nav className="bg-white text-gray-800 shadow-md p-4 flex flex-col md:flex-row items-center justify-between sticky top-0 z-50 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
-                
-                <span className="flex items-center cursor-pointer mb-2 mr-1 md:mb-0" onClick={() => navigate('/')}>
-                    <img src={logo} alt="GuffSuff Logo" className="h-8 w-auto mr-2" />
-                    <span className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">
-                        Guff Suff
-                    </span>
-                </span>
 
-                <div className="flex flex-col md:flex-row items-center md:space-x-2 mb-2 md:mb-0">
-                    
-                    {/* Modernized Language Switcher with Flags */}
-                    <div className="mb-2 md:mb-0 md:-ml-4">
-                        <button 
-                            onClick={toggleLanguage}
-                            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700 shadow-sm"
-                        >
-                            {i18n.language === 'en' ? (
-                                <>
-                                    <img 
-                                        src="https://flagcdn.com/w40/gb.png" 
-                                        alt="English" 
-                                        className="w-5 h-auto rounded-sm shadow-sm"
-                                    />
-                                    <span className="text-sm font-bold tracking-tight">EN</span>
-                                </>
-                            ) : (
-                                <>
-                                    <img 
-                                        src="https://flagcdn.com/w40/np.png" 
-                                        alt="Nepali" 
-                                        className="w-4 h-auto shadow-sm"
-                                    />
-                                    <span className="text-sm font-bold tracking-tight">NE</span>
-                                </>
-                            )}
-                        </button>
+            <nav className="bg-white text-gray-800 shadow-md px-6 py-3 flex items-center justify-between sticky top-0 z-50 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+                
+                <div className="flex items-center space-x-5">
+
+                    <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
+                        <img src={logo} alt="GuffSuff Logo" className="h-8 w-auto mr-2" />
+                        <span className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 hidden sm:block">
+                            Guff Suff
+                        </span>
                     </div>
 
-                    <div className="flex flex-wrap items-center space-x-1 md:space-x-4">
-                        <button onClick={() => navigate('/')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{t('articles')}</button>
+                    <button 
+                        onClick={toggleLanguage}
+                        className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700 shadow-sm"
+                    >
+                        {i18n.language === 'en' ? (
+                            <>
+                                <img src="https://flagcdn.com/w40/gb.png" alt="English" className="w-5 h-auto rounded-sm" />
+                                <span className="text-sm font-bold">EN</span>
+                            </>
+                        ) : (
+                            <>
+                                <img src="https://flagcdn.com/w40/np.png" alt="Nepali" className="w-4 h-auto" />
+                                <span className="text-sm font-bold">NE</span>
+                            </>
+                        )}
+                    </button>
+
+                    <div className="hidden lg:flex items-center space-x-2 border-l pl-5 border-gray-200 dark:border-gray-700">
+                        <button onClick={() => navigate('/')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                            {t('articles')}
+                        </button>
                         
                         {user && user.role === 'Publisher' && (
                             <>
@@ -109,43 +100,45 @@ const Layout = () => {
                     </div>
                 </div>
 
-                <button
-                    onClick={toggleDarkMode}
-                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-300"
-                    aria-label="Toggle Dark Mode"
-                >
-                    {isDarkMode ? <FaSun className="text-yellow-400 text-xl" /> : <FaMoon className="text-gray-700 text-xl" />}
-                </button>
+                <div className="flex items-center space-x-4">
+                    <button
+                        onClick={toggleDarkMode}
+                        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-300"
+                        aria-label="Toggle Dark Mode"
+                    >
+                        {isDarkMode ? <FaSun className="text-yellow-400 text-xl" /> : <FaMoon className="text-gray-700 text-xl" />}
+                    </button>
 
-                <div className="flex items-center space-x-2 mt-2 md:mt-0">
-                    {user ? (
-                        <>
-                            <NotificationBell />
-                            <button onClick={() => navigate('/profile')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                                {t('profile')}
-                            </button>
-                            {user.role === 'Reader' && (
-                                <button onClick={() => navigate('/my-subscriptions')} className="px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                                    {t('mySubscriptions')}
+                    <div className="flex items-center space-x-2">
+                        {user ? (
+                            <>
+                                <NotificationBell />
+                                <button onClick={() => navigate('/profile')} className="hidden md:block px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                    {t('profile')}
                                 </button>
-                            )}
-                            <span className="text-sm font-medium hidden md:block">
-                                {t('welcome')} {user?.username}!
-                            </span>
-                            <button onClick={handleLogout} className="px-4 py-1 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors">
-                                {t('logout')}
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <button onClick={() => navigate('/login')} className="px-4 py-1 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors">
-                                {t('login')}
-                            </button>
-                            <button onClick={() => navigate('/register')} className="px-4 py-1 text-sm font-semibold text-indigo-600 border border-indigo-600 rounded-md hover:bg-indigo-100 transition-colors">
-                                {t('register')}
-                            </button>
-                        </>
-                    )}
+                                {user.role === 'Reader' && (
+                                    <button onClick={() => navigate('/my-subscriptions')} className="hidden md:block px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                        {t('mySubscriptions')}
+                                    </button>
+                                )}
+                                <span className="text-sm font-medium hidden xl:block text-indigo-600 dark:text-indigo-400">
+                                    {user.username}
+                                </span>
+                                <button onClick={handleLogout} className="px-4 py-1 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors">
+                                    {t('logout')}
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button onClick={() => navigate('/login')} className="px-4 py-1 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors">
+                                    {t('login')}
+                                </button>
+                                <button onClick={() => navigate('/register')} className="px-4 py-1 text-sm font-semibold text-indigo-600 border border-indigo-600 rounded-md hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors">
+                                    {t('register')}
+                                </button>
+                            </>
+                        )}
+                    </div>
                 </div>
             </nav>
 
