@@ -95,31 +95,50 @@ const ArticleList = () => {
       <h1 className="text-4xl font-bold text-gray-800 mb-6 dark:text-gray-100">{t('latestArticles')}</h1>
       
       {/* Search and filter controls */}
-      <div className="flex flex-col md:flex-row items-center justify-between mb-8 space-y-4 md:space-y-0 md:space-x-4">
-        <input 
-          type="text"
-          placeholder={t('searchPlaceholder')}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-1/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-        />
-        <div className="flex flex-wrap space-x-2">
-          {/* Dynamically generated buttons for category filters */}
-          <button 
-            onClick={() => handleFilterChange({ category: '' })} 
-            className="py-2 px-4 rounded-lg font-medium text-sm transition-colors text-gray-600 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-          >
-            {t('all')}
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleFilterChange({ category: cat })}
-              className="py-2 px-4 rounded-lg font-medium text-sm transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
-              >
-              {t(cat.toLowerCase())}
+      <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 space-y-6 md:space-y-0">
+        
+        {/* Search Input - Controlled width on desktop */}
+        <div className="w-full md:w-80">
+          <input 
+            type="text"
+            placeholder={t('searchPlaceholder')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+          />
+        </div>
+
+        {/* Category Selector - Flexed to stay neat on Desktop */}
+        <div className="w-full md:flex-1 md:pl-6 overflow-hidden">
+          <div className="flex items-center overflow-x-auto lg:overflow-visible lg:flex-wrap py-1 scrollbar-hide">
+            
+            {/* "All" Button */}
+            <button 
+              onClick={() => handleFilterChange({ category: '' })} 
+              className={`py-2 px-5 rounded-lg font-medium text-sm transition-all whitespace-nowrap mr-3 mb-2 ${
+                filters.category === '' 
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+              }`}
+            >
+              {t('all')}
             </button>
-              ))}
+
+            {/* Category Buttons */}
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => handleFilterChange({ category: cat })}
+                className={`py-2 px-5 rounded-lg font-medium text-sm transition-all whitespace-nowrap mr-3 mb-2 ${
+                  filters.category === cat 
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none' 
+                  : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200'
+                }`}
+              >
+                {t(cat.toLowerCase())}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       
