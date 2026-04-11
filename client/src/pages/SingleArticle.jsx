@@ -364,7 +364,10 @@ useEffect(() => {
       </div>
       
       {/* Article Content */}
-      <div className="prose prose-lg max-w-none text-gray-700 dark:prose-invert dark:text-gray-300" dangerouslySetInnerHTML={{ __html: article.content }}></div>
+      <div 
+  className="prose prose-lg max-w-none text-gray-700 dark:prose-invert dark:text-gray-300 [overflow-wrap:anywhere]" 
+  dangerouslySetInnerHTML={{ __html: article.content }}
+></div>
       
       {/* Metrics Section */}
       <div className="mt-10 flex flex-wrap gap-6 items-center text-gray-600 text-lg font-semibold dark:text-gray-400">

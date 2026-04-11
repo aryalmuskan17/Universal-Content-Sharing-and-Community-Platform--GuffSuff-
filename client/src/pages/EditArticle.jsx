@@ -28,8 +28,11 @@ const EditArticle = () => {
     title: '', 
     content: '', 
     status: '',
-    category: ''
+    category: '',
+    tags: '',
+    language: 'en'
   });
+  const [media, setMedia] = useState(null);
   // State to manage loading status
   const [loading, setLoading] = useState(true);
   // State for any error messages
@@ -45,7 +48,11 @@ const EditArticle = () => {
         const response = await axios.get(`http://localhost:5001/api/articles/${articleId}`, {
           headers: { 'x-auth-token': token }
         });
-        setArticle(response.data);
+        const data = response.data;
+          setArticle({
+            ...data,
+            tags: data.tags ? data.tags.join(', ') : '' 
+          });
         setLoading(false);
       } catch (err) {
         console.error('Failed to fetch article:', err);
@@ -75,12 +82,29 @@ const EditArticle = () => {
       const originalStatus = article.status;
       
       // Send a PUT request with the updated article data
-      const response = await axios.put(`http://localhost:5001/api/articles/${articleId}`, article, {
-        headers: { 'x-auth-token': token }
-      });
+      const editData = new FormData();
+        editData.append('title', article.title);
+        editData.append('content', article.content);
+        editData.append('category', article.category);
+        editData.append('tags', article.tags);
+        editData.append('language', article.language);
+        if (article.status) editData.append('status', article.status);
+        if (media) editData.append('media', media);
 
+        const response = await axios.put(`http://localhost:5001/api/articles/${articleId}`, editData, {
+          headers: { 
+            'x-auth-token': token,
+            'Content-Type': 'multipart/form-data' 
+          }
+        });
       // Update the state with the new data from the response
       setArticle(response.data.data);
+
+      const updatedData = response.data.data;
+        setArticle({
+          ...updatedData,
+          tags: updatedData.tags ? updatedData.tags.join(', ') : ''
+        });
 
       const newStatus = response.data.data.status;
       // Provide user feedback with a specific message if the status changed
@@ -154,8 +178,30 @@ const EditArticle = () => {
             .dark .ql-snow .ql-picker { color: #f3f4f6 !important; }
             .dark .ql-snow .ql-picker-options { background-color: #1f2937 !important; border-color: #4b5563 !important; }
           `}</style>
-        </div>
-        
+          </div>
+        {/* Media Upload */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('media')}</label>
+            <input 
+              type="file" 
+              onChange={(e) => setMedia(e.target.files[0])} 
+              className="w-full text-gray-700 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 dark:file:bg-gray-800 dark:file:text-indigo-400" 
+            />
+          </div>
+
+          {/* Tags Input */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('tags')}</label>
+              <input 
+                type="text" 
+                name="tags" 
+                value={article.tags} 
+                onChange={handleEditChange} 
+                placeholder="e.g. tech, news, nepal"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none" 
+              />
+            </div>
+
         {/* Category Select */}
         <div>
           <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
@@ -175,7 +221,20 @@ const EditArticle = () => {
               </option>
             ))}
           </select>
-        </div>
+          </div>
+            {/* Language Select */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('language')}</label>
+              <select 
+                name="language" 
+                value={article.language} 
+                onChange={handleEditChange} 
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+              >
+                <option value="en">{t('english')}</option>
+                <option value="ne">{t('nepali')}</option>
+              </select>
+            </div>
         
         {/* CRITICAL FIX: Conditionally render the status dropdown for admins only */}
         {user && user.role === 'Admin' && (

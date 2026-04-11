@@ -407,14 +407,14 @@ router.get('/publisher/analytics', auth(['Publisher', 'Admin']), async (req, res
 
 // server/routes/articles.js (Corrected 'update article' route)
 
-router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
+router.put('/:id', auth(['Publisher', 'Admin']), upload.single('media'), async (req, res) => {
   try {
     const article = await Article.findById(req.params.id).select('+mediaUrl');
 
     if (!article) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
-
+    
     // Security check: only the author or an Admin can edit.
     // Admins can edit any article, so we skip the check for them.
     if (req.user.role !== 'Admin' && article.author.toString() !== req.user.id) {
@@ -422,6 +422,13 @@ router.put('/:id', auth(['Publisher', 'Admin']), async (req, res) => {
     }
     
     let updateData = { ...req.body, updatedAt: Date.now() };
+        if (req.file) { 
+        updateData.mediaUrl = req.file.path; 
+      }
+      
+      if (updateData.tags) {
+        updateData.tags = updateData.tags.split(',').map(tag => tag.trim());
+      }
 
     // Publishers cannot manually change status, and if they edit a published article,
     // we must change its status to 'pending' for re-review.
