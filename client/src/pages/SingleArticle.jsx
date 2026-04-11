@@ -204,6 +204,27 @@ const SingleArticle = () => {
     }
   };
 
+useEffect(() => {
+  if (article && article.content) {
+    const timer = setTimeout(() => {
+      const links = document.querySelectorAll('.prose a');
+      links.forEach(link => {
+        const href = link.getAttribute('href');
+        
+        if (href && !href.startsWith('http') && !href.startsWith('mailto') && !href.startsWith('#')) {
+          link.setAttribute('href', `https://${href}`);
+        }
+
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+        link.classList.add('text-indigo-600', 'hover:text-indigo-800', 'underline');
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }
+}, [article]);
+
   // Conditional rendering for loading and error states
   if (loading) {
     return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loadingArticle')}</div>;

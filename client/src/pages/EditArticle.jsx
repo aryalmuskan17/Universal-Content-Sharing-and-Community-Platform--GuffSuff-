@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 import { ThemeContext } from '../context/ThemeContext';
 import { toast } from 'react-toastify';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 // Define the categories, consistent with other components that use them.
 const categories = ['Sports', 'Technology', 'Science', 'Health', 'Business', 'Entertainment'];
@@ -32,7 +34,9 @@ const EditArticle = () => {
   const [loading, setLoading] = useState(true);
   // State for any error messages
   const [error, setError] = useState('');
-  
+    const handleContentChange = (value) => {
+    setArticle(prevArticle => ({ ...prevArticle, content: value }));
+  };
   // Effect hook to fetch the specific article's data when the component mounts or articleId changes
   useEffect(() => {
     const fetchArticle = async () => {
@@ -93,6 +97,15 @@ const EditArticle = () => {
     }
   };
 
+    const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['link', 'clean'],
+    ],
+  };
+
   // Conditional rendering for loading state
   if (loading) {
     return <div className="text-center p-8 text-xl font-medium text-gray-600 dark:text-gray-400">{t('loading')}...</div>;
@@ -123,14 +136,24 @@ const EditArticle = () => {
         {/* Content Textarea */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">{t('content')}</label>
-          <textarea
-            name="content"
-            value={article.content}
-            onChange={handleEditChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-            rows="10"
-            required
-          ></textarea>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 overflow-hidden relative z-0">
+            <ReactQuill
+              theme="snow"
+              value={article.content}
+              onChange={handleContentChange}
+              modules={modules}
+              className="dark:text-gray-100"
+            />
+          </div>
+          <style>{`
+            .ql-container { min-height: 250px; font-size: 16px; }
+            .dark .ql-toolbar.ql-snow { background-color: #1f2937 !important; border-color: #374151 !important; }
+            .dark .ql-container.ql-snow { background-color: #1f2937 !important; border-color: #374151 !important; }
+            .dark .ql-snow .ql-stroke { stroke: #f3f4f6 !important; }
+            .dark .ql-snow .ql-fill { fill: #f3f4f6 !important; }
+            .dark .ql-snow .ql-picker { color: #f3f4f6 !important; }
+            .dark .ql-snow .ql-picker-options { background-color: #1f2937 !important; border-color: #4b5563 !important; }
+          `}</style>
         </div>
         
         {/* Category Select */}
@@ -148,7 +171,7 @@ const EditArticle = () => {
             <option value="" disabled>{t('selectCategory')}</option>
             {categories.map((cat, index) => (
               <option key={index} value={cat}>
-                {t(cat)}
+                {t(cat.toLowerCase())}
               </option>
             ))}
           </select>

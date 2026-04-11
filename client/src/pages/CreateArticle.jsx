@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ThemeContext } from '../context/ThemeContext';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 // Define the categories, consistent with other components that use them.
 const categories = ['Sports', 'Technology', 'Science', 'Health', 'Business', 'Entertainment'];
@@ -33,6 +35,9 @@ const CreateArticle = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  const handleContentChange = (value) => {
+  setFormData({ ...formData, content: value });
+};
   
   // Handler specifically for file input changes
   const handleFileChange = (e) => {
@@ -101,6 +106,15 @@ const CreateArticle = () => {
     }
   };
 
+  const modules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link', 'clean'],
+  ],
+};
+
   return (
     <div className="flex justify-center items-center p-4">
       <div className="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg dark:bg-gray-900 transition-colors duration-300">
@@ -128,15 +142,45 @@ const CreateArticle = () => {
             <label htmlFor="content" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-gray-300">
               {t('content')}
             </label>
-            <textarea
-              id="content"
-              name="content"
-              rows="10"
-              value={formData.content}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-            ></textarea>
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 overflow-hidden relative z-0">
+              <ReactQuill
+                theme="snow"
+                value={formData.content}
+                onChange={handleContentChange}
+                modules={modules}
+                className="dark:text-gray-100"
+              />
+            </div>
+            <style>{`
+                .ql-container { 
+                  min-height: 250px; 
+                  font-size: 16px; 
+                }
+                .dark .ql-toolbar.ql-snow {
+                  background-color: #1f2937 !important; /* Matches Tailwind gray-800 */
+                  border-color: #374151 !important;     /* Matches Tailwind gray-700 */
+                }
+                .dark .ql-container.ql-snow {
+                  background-color: #1f2937 !important;
+                  border-color: #374151 !important;
+                }
+                .dark .ql-snow .ql-stroke {
+                  stroke: #f3f4f6 !important;
+                }
+                .dark .ql-snow .ql-fill {
+                  fill: #f3f4f6 !important;
+                }
+                .dark .ql-snow .ql-picker {
+                  color: #f3f4f6 !important;
+                }
+                .dark .ql-snow .ql-picker-options {
+                  background-color: #1f2937 !important;
+                  border-color: #4b5563 !important;
+                }
+                .dark .ql-editor.ql-blank::before {
+                  color: #9ca3af !important;
+                }
+              `}</style>
           </div>
           
           {/* Media File Input */}

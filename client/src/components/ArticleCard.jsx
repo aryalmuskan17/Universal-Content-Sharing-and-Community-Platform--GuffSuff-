@@ -17,6 +17,10 @@ const ArticleCard = ({ article }) => {
   const { user } = useContext(UserContext); // Access user data from context
   const { isDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
+  const stripHtml = (html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || "";
+  };
 
   // Check if the current user has already liked the article
   const isLiked = user && currentArticle?.likedBy?.includes(user._id);
@@ -27,7 +31,10 @@ const ArticleCard = ({ article }) => {
   }
 
   // Generate a short snippet of the article content for the card
-  const contentSnippet = currentArticle.content.substring(0, 150) + '...';
+  const plainText = stripHtml(currentArticle.content);
+  const contentSnippet = plainText.length > 150 
+    ? plainText.substring(0, 150) + '...' 
+    : plainText;
   // Format the article creation date
   const formattedDate = new Date(currentArticle.createdAt).toLocaleDateString();
 
@@ -102,7 +109,7 @@ const ArticleCard = ({ article }) => {
       
       await axios.patch(`http://localhost:5001/api/articles/${currentArticle._id}/share`);
       
-      toast.error(t('articleShareFailure'));
+      toast.success(t('articleLinkCopied'));
     } catch (err) {
       toast.error('Failed to copy link or share article.');
       console.error(err);
